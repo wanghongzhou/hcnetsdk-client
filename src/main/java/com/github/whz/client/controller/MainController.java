@@ -3,13 +3,11 @@ package com.github.whz.client.controller;
 import com.github.whz.client.basic.view.FXMLController;
 import com.github.whz.client.mode.LoginInfo;
 import com.github.whz.client.service.MainService;
-import com.github.whz.hcnetsdk.model.DeviceInfo;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import org.springframework.data.mongodb.core.MongoTemplate;
 
 import javax.annotation.Resource;
 import java.net.URL;

@@ -1,21 +1,21 @@
 package com.github.whz.hcnetsdk;
 
+import com.sun.javafx.font.directwrite.RECT;
 import com.sun.jna.*;
-import com.sun.jna.examples.win32.GDI32.RECT;
-import com.sun.jna.examples.win32.W32API;
-import com.sun.jna.examples.win32.W32API.HDC;
-import com.sun.jna.examples.win32.W32API.HWND;
+import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.ByteByReference;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.NativeLongByReference;
 import com.sun.jna.ptr.ShortByReference;
+import com.sun.jna.win32.W32APIOptions;
 
 import java.util.List;
 
 //SDK接口说明,HCNetSDK.dll
 public interface HCNetSDK extends Library {
 
-    HCNetSDK INSTANCE = (HCNetSDK) Native.loadLibrary("hcnetsdk", HCNetSDK.class);
+    HCNetSDK INSTANCE = Native.load("hcnetsdk", HCNetSDK.class);
 
     /*** 宏定义（常量） ***/
     int MAX_NAMELEN = 16;    //DVR本地登陆名
@@ -893,7 +893,7 @@ public interface HCNetSDK extends Library {
      参数配置结构、参数(其中_V30为9000新增)
      **************************************************/
     //校时结构参数
-    class NET_DVR_TIME extends Structure {//校时结构参数
+    class NET_DVR_TIME extends HCNetSDKStructure {//校时结构参数
         public int dwYear;        //年
         public int dwMonth;        //月
         public int dwDay;        //日
@@ -916,7 +916,7 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class NET_DVR_TIME_V29 extends Structure {
+    class NET_DVR_TIME_V29 extends HCNetSDKStructure {
 
         public short wYear;
         public byte byMonth;
@@ -930,7 +930,7 @@ public interface HCNetSDK extends Library {
 
     }
 
-    class NET_DVR_TIME_V30 extends Structure {
+    class NET_DVR_TIME_V30 extends HCNetSDKStructure {
 
         public short wYear;
         public byte byMonth;
@@ -943,7 +943,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes1 = new byte[2];
     }
 
-    class NET_DVR_SCHEDTIME extends Structure {
+    class NET_DVR_SCHEDTIME extends HCNetSDKStructure {
 
         public byte byStartHour;    //开始时间
         public byte byStartMin;
@@ -951,21 +951,21 @@ public interface HCNetSDK extends Library {
         public byte byStopMin;
     }
 
-    class NET_DVR_HANDLEEXCEPTION_V30 extends Structure {
+    class NET_DVR_HANDLEEXCEPTION_V30 extends HCNetSDKStructure {
 
         public int dwHandleType;    /*处理方式,处理方式的"或"结果*//*0x00: 无响应*//*0x01: 监视器上警告*//*0x02: 声音警告*//*0x04: 上传中心*/    /*0x08: 触发报警输出*//*0x20: 触发抓图*/  //(JPEG定制)
         public byte[] byRelAlarmOut = new byte[MAX_ALARMOUT_V30];  //报警触发的输出通道,报警触发的输出,为1表示触发该输出
     }
 
     //报警和异常处理结构(子结构)(多处使用)
-    class NET_DVR_HANDLEEXCEPTION extends Structure {
+    class NET_DVR_HANDLEEXCEPTION extends HCNetSDKStructure {
 
         public int dwHandleType;            /*处理方式,处理方式的"或"结果*//*0x00: 无响应*//*0x01: 监视器上警告*//*0x02: 声音警告*//*0x04: 上传中心*/    /*0x08: 触发报警输出*//*0x20: 触发抓图*/  //(JPEG定制)
         public byte[] byRelAlarmOut = new byte[MAX_ALARMOUT];  //报警触发的输出通道,报警触发的输出,为1表示触发该输出
     }
 
     //DVR设备参数
-    class NET_DVR_DEVICECFG extends Structure {
+    class NET_DVR_DEVICECFG extends HCNetSDKStructure {
 
         public int dwSize;
         public byte[] sDVRName = new byte[NAME_LEN];     //DVR名称
@@ -997,7 +997,7 @@ public interface HCNetSDK extends Library {
         public byte byIPChanNum;            //最大数字通道数
     }
 
-    class NET_DVR_IPADDR extends Structure {
+    class NET_DVR_IPADDR extends HCNetSDKStructure {
 
         public byte[] sIpV4 = new byte[16];
         public byte[] byRes = new byte[128];
@@ -1008,7 +1008,7 @@ public interface HCNetSDK extends Library {
     }
 
     //网络数据结构(子结构)(9000扩展)
-    class NET_DVR_ETHERNET_V30 extends Structure {
+    class NET_DVR_ETHERNET_V30 extends HCNetSDKStructure {
 
         public NET_DVR_IPADDR struDVRIP = new NET_DVR_IPADDR();
         public NET_DVR_IPADDR struDVRIPMask = new NET_DVR_IPADDR();
@@ -1022,7 +1022,7 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class NET_DVR_ETHERNET extends Structure {//网络数据结构(子结构)
+    class NET_DVR_ETHERNET extends HCNetSDKStructure {//网络数据结构(子结构)
         public byte[] sDVRIP = new byte[16];                    //DVR IP地址
         public byte[] sDVRIPMask = new byte[16];                //DVR IP地址掩码
         public int dwNetInterface;               //网络接口 1-10MBase-T 2-10MBase-T全双工 3-100MBase-TX 4-100M全双工 5-10M/100M自适应
@@ -1030,14 +1030,14 @@ public interface HCNetSDK extends Library {
         public byte[] byMACAddr = new byte[MACADDR_LEN];        //服务器的物理地址
     }
 
-    class NET_DVR_PPPOECFG extends Structure {//PPPoe
+    class NET_DVR_PPPOECFG extends HCNetSDKStructure {//PPPoe
         public int dwPPPoE;
         public byte[] sPPPoEUser = new byte[32];
         public byte[] sPPPoEPassword = new byte[16];
         public NET_DVR_IPADDR struPPPoEIP = new NET_DVR_IPADDR();
     }
 
-    class NET_DVR_NETCFG_V30 extends Structure {
+    class NET_DVR_NETCFG_V30 extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_ETHERNET_V30[] struEtherNet = new NET_DVR_ETHERNET_V30[2];
@@ -1069,7 +1069,7 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class NET_DVR_NETCFG extends Structure {//网络配置结构
+    class NET_DVR_NETCFG extends HCNetSDKStructure {//网络配置结构
         public int dwSize;
         public NET_DVR_ETHERNET[] struEtherNet = new NET_DVR_ETHERNET[MAX_ETHERNET];        /* 以太网口 */
         public byte[] sManageHostIP = new byte[16];            //远程管理主机地址
@@ -1092,7 +1092,7 @@ public interface HCNetSDK extends Library {
     }
 
     //通道图象结构
-    class NET_DVR_SCHEDTIMEWEEK extends Structure {
+    class NET_DVR_SCHEDTIMEWEEK extends HCNetSDKStructure {
 
         public NET_DVR_SCHEDTIME[] struAlarmTime = new NET_DVR_SCHEDTIME[8];
 
@@ -1103,12 +1103,12 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class byte96 extends Structure {
+    class byte96 extends HCNetSDKStructure {
 
         public byte[] byMotionScope = new byte[96];
     }
 
-    class NET_DVR_MOTION_V30 extends Structure {//移动侦测(子结构)(9000扩展)
+    class NET_DVR_MOTION_V30 extends HCNetSDKStructure {//移动侦测(子结构)(9000扩展)
         public byte96[] byMotionScope = new byte96[64];                        /*侦测区域,0-96位,表示64行,共有96*64个小宏块,为1表示是移动侦测区域,0-表示不是*/
         public byte byMotionSensitive;                            /*移动侦测灵敏度, 0 - 5,越高越灵敏,oxff关闭*/
         public byte byEnableHandleMotion;                        /* 是否处理移动侦测 0－否 1－是*/
@@ -1129,7 +1129,7 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class NET_DVR_MOTION extends Structure {//移动侦测(子结构)
+    class NET_DVR_MOTION extends HCNetSDKStructure {//移动侦测(子结构)
         public byte[][] byMotionScope = new byte[18][22];    /*侦测区域,共有22*18个小宏块,为1表示改宏块是移动侦测区域,0-表示不是*/
         public byte byMotionSensitive;        /*移动侦测灵敏度, 0 - 5,越高越灵敏,0xff关闭*/
         public byte byEnableHandleMotion;    /* 是否处理移动侦测 */
@@ -1138,7 +1138,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRelRecordChan = new byte[MAX_CHANNUM]; //报警触发的录象通道,为1表示触发该通道
     }
 
-    class NET_DVR_HIDEALARM_V30 extends Structure {//遮挡报警
+    class NET_DVR_HIDEALARM_V30 extends HCNetSDKStructure {//遮挡报警
         public int dwEnableHideAlarm;                /* 是否启动遮挡报警 ,0-否,1-低灵敏度 2-中灵敏度 3-高灵敏度*/
         public short wHideAlarmAreaTopLeftX;            /* 遮挡区域的x坐标 */
         public short wHideAlarmAreaTopLeftY;            /* 遮挡区域的y坐标 */
@@ -1154,7 +1154,7 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class NET_DVR_HIDEALARM extends Structure {//遮挡报警(子结构)  区域大小704*576
+    class NET_DVR_HIDEALARM extends HCNetSDKStructure {//遮挡报警(子结构)  区域大小704*576
         public int dwEnableHideAlarm;                /* 是否启动遮挡报警 ,0-否,1-低灵敏度 2-中灵敏度 3-高灵敏度*/
         public short wHideAlarmAreaTopLeftX;            /* 遮挡区域的x坐标 */
         public short wHideAlarmAreaTopLeftY;            /* 遮挡区域的y坐标 */
@@ -1163,7 +1163,7 @@ public interface HCNetSDK extends Library {
         public NET_DVR_HANDLEEXCEPTION strHideAlarmHandleType = new NET_DVR_HANDLEEXCEPTION();    /* 处理方式 */
     }
 
-    class NET_DVR_VILOST_V30 extends Structure {    //信号丢失报警(子结构)(9000扩展)
+    class NET_DVR_VILOST_V30 extends HCNetSDKStructure {    //信号丢失报警(子结构)(9000扩展)
 
         public byte byEnableHandleVILost;                         /* 是否处理信号丢失报警 */
         public NET_DVR_HANDLEEXCEPTION_V30 strVILostHandleType = new NET_DVR_HANDLEEXCEPTION_V30();         /* 处理方式 */
@@ -1176,13 +1176,13 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class NET_DVR_VILOST extends Structure {    //信号丢失报警(子结构)
+    class NET_DVR_VILOST extends HCNetSDKStructure {    //信号丢失报警(子结构)
 
         public byte byEnableHandleVILost;    /* 是否处理信号丢失报警 */
         public NET_DVR_HANDLEEXCEPTION strVILostHandleType = new NET_DVR_HANDLEEXCEPTION();    /* 处理方式 */
     }
 
-    class NET_DVR_SHELTER extends Structure {  //遮挡区域(子结构)
+    class NET_DVR_SHELTER extends HCNetSDKStructure {  //遮挡区域(子结构)
 
         public short wHideAreaTopLeftX;                /* 遮挡区域的x坐标 */
         public short wHideAreaTopLeftY;                /* 遮挡区域的y坐标 */
@@ -1190,7 +1190,7 @@ public interface HCNetSDK extends Library {
         public short wHideAreaHeight;                /* 遮挡区域的高*/
     }
 
-    class NET_DVR_COLOR extends Structure {
+    class NET_DVR_COLOR extends HCNetSDKStructure {
 
         public byte byBrightness;    /*亮度,0-255*/
         public byte byContrast;        /*对比度,0-255*/
@@ -1198,7 +1198,7 @@ public interface HCNetSDK extends Library {
         public byte byHue;            /*色调,0-255*/
     }
 
-    class NET_DVR_VICOLOR extends Structure {
+    class NET_DVR_VICOLOR extends HCNetSDKStructure {
 
         public NET_DVR_COLOR[] struColor = new NET_DVR_COLOR[MAX_TIMESEGMENT_V30];/*图象参数(第一个有效，其他三个保留)*/
         public NET_DVR_SCHEDTIME[] struHandleTime = new NET_DVR_SCHEDTIME[MAX_TIMESEGMENT_V30];/*处理时间段(保留)*/
@@ -1211,7 +1211,7 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class NET_DVR_PICCFG_V30 extends Structure {
+    class NET_DVR_PICCFG_V30 extends HCNetSDKStructure {
 
         public int dwSize;
         public byte[] sChanName = new byte[NAME_LEN];
@@ -1242,7 +1242,7 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class NET_DVR_PICCFG_EX extends Structure {//通道图象结构SDK_V14扩展
+    class NET_DVR_PICCFG_EX extends HCNetSDKStructure {//通道图象结构SDK_V14扩展
         public int dwSize;
         public byte[] sChanName = new byte[NAME_LEN];
         public int dwVideoFormat;    /* 只读 视频制式 1-NTSC 2-PAL*/
@@ -1290,7 +1290,7 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class NET_DVR_PICCFG extends Structure { //通道图象结构(SDK_V13及之前版本)
+    class NET_DVR_PICCFG extends HCNetSDKStructure { //通道图象结构(SDK_V13及之前版本)
 
         public int dwSize;
         public byte[] sChanName = new byte[NAME_LEN];
@@ -1336,7 +1336,7 @@ public interface HCNetSDK extends Library {
     }
 
     //码流压缩参数(子结构)(9000扩展)
-    class NET_DVR_COMPRESSION_INFO_V30 extends Structure {
+    class NET_DVR_COMPRESSION_INFO_V30 extends HCNetSDKStructure {
 
         public byte byStreamType;  //码流类型：0-视频流，1-复合流，0xfe- 自动（和源一致）
         public byte byResolution;  //分辨率
@@ -1361,7 +1361,7 @@ public interface HCNetSDK extends Library {
     }
 
     //通道压缩参数(9000扩展)
-    class NET_DVR_COMPRESSIONCFG_V30 extends Structure {
+    class NET_DVR_COMPRESSIONCFG_V30 extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_COMPRESSION_INFO_V30 struNormHighRecordPara = new NET_DVR_COMPRESSION_INFO_V30();    //录像 对应8000的普通
@@ -1370,7 +1370,7 @@ public interface HCNetSDK extends Library {
         public NET_DVR_COMPRESSION_INFO_V30 struNetPara = new NET_DVR_COMPRESSION_INFO_V30();               //网传(子码流)
     }
 
-    class NET_DVR_COMPRESSION_INFO extends Structure {//码流压缩参数(子结构)
+    class NET_DVR_COMPRESSION_INFO extends HCNetSDKStructure {//码流压缩参数(子结构)
         public byte byStreamType;        //码流类型0-视频流,1-复合流,表示压缩参数时最高位表示是否启用压缩参数
         public byte byResolution;    //分辨率0-DCIF 1-CIF, 2-QCIF, 3-4CIF, 4-2CIF, 5-2QCIF(352X144)(车载专用)
         public byte byBitrateType;        //码率类型0:变码率，1:定码率
@@ -1381,13 +1381,13 @@ public interface HCNetSDK extends Library {
         public int dwVideoFrameRate;    //帧率 0-全部; 1-1/16; 2-1/8; 3-1/4; 4-1/2; 5-1; 6-2; 7-4; 8-6; 9-8; 10-10; 11-12; 12-16; 13-20;
     }
 
-    class NET_DVR_COMPRESSIONCFG extends Structure {//通道压缩参数
+    class NET_DVR_COMPRESSIONCFG extends HCNetSDKStructure {//通道压缩参数
         public int dwSize;
         public NET_DVR_COMPRESSION_INFO struRecordPara = new NET_DVR_COMPRESSION_INFO(); //录像/事件触发录像
         public NET_DVR_COMPRESSION_INFO struNetPara = new NET_DVR_COMPRESSION_INFO();    //网传/保留
     }
 
-    class NET_DVR_COMPRESSION_INFO_EX extends Structure {//码流压缩参数(子结构)(扩展) 增加I帧间隔
+    class NET_DVR_COMPRESSION_INFO_EX extends HCNetSDKStructure {//码流压缩参数(子结构)(扩展) 增加I帧间隔
         public byte byStreamType;        //码流类型0-视频流, 1-复合流
         public byte byResolution;    //分辨率0-DCIF 1-CIF, 2-QCIF, 3-4CIF, 4-2CIF, 5-2QCIF(352X144)(车载专用)
         public byte byBitrateType;        //码率类型0:变码率，1:定码率
@@ -1402,13 +1402,13 @@ public interface HCNetSDK extends Library {
         public byte byENumber;//E帧数量
     }
 
-    class NET_DVR_COMPRESSIONCFG_EX extends Structure {//通道压缩参数(扩展)
+    class NET_DVR_COMPRESSIONCFG_EX extends HCNetSDKStructure {//通道压缩参数(扩展)
         public int dwSize;
         public NET_DVR_COMPRESSION_INFO_EX struRecordPara = new NET_DVR_COMPRESSION_INFO_EX(); //录像
         public NET_DVR_COMPRESSION_INFO_EX struNetPara = new NET_DVR_COMPRESSION_INFO_EX();    //网传
     }
 
-    class NET_DVR_RECCOMPRESSIONCFG_EX extends Structure {//录象时间段压缩参数配置(GE定制)2006-09-18
+    class NET_DVR_RECCOMPRESSIONCFG_EX extends HCNetSDKStructure {//录象时间段压缩参数配置(GE定制)2006-09-18
         int dwSize;
         NET_DVR_COMPRESSION_INFO_EX[][] struRecTimePara = new NET_DVR_COMPRESSION_INFO_EX[MAX_DAYS][MAX_TIMESEGMENT]; //录像时间段
 
@@ -1421,7 +1421,7 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class NET_DVR_RECORDSCHED extends Structure //时间段录像参数配置(子结构)
+    class NET_DVR_RECORDSCHED extends HCNetSDKStructure //时间段录像参数配置(子结构)
     {
 
         public NET_DVR_SCHEDTIME struRecordTime = new NET_DVR_SCHEDTIME();
@@ -1429,7 +1429,7 @@ public interface HCNetSDK extends Library {
         public byte[] reservedData = new byte[3];
     }
 
-    class NET_DVR_RECORDDAY extends Structure //全天录像参数配置(子结构)
+    class NET_DVR_RECORDDAY extends HCNetSDKStructure //全天录像参数配置(子结构)
     {
 
         public short wAllDayRecord;                /* 是否全天录像 0-否 1-是*/
@@ -1437,12 +1437,12 @@ public interface HCNetSDK extends Library {
         public byte reservedData;
     }
 
-    class NET_DVR_RECORDSCHEDWEEK extends Structure {
+    class NET_DVR_RECORDSCHEDWEEK extends HCNetSDKStructure {
 
         public NET_DVR_RECORDSCHED[] struRecordSched = (NET_DVR_RECORDSCHED[]) new NET_DVR_RECORDSCHED().toArray(MAX_TIMESEGMENT_V30);
     }
 
-    class NET_DVR_RECORD_V30 extends Structure {    //通道录像参数配置(9000扩展)
+    class NET_DVR_RECORD_V30 extends HCNetSDKStructure {    //通道录像参数配置(9000扩展)
 
         public int dwSize;
         public int dwRecord;                        /*是否录像 0-否 1-是*/
@@ -1456,7 +1456,7 @@ public interface HCNetSDK extends Library {
         public byte[] byReserve = new byte[10];
     }
 
-    class NET_DVR_RECORD extends Structure { //通道录像参数配置
+    class NET_DVR_RECORD extends HCNetSDKStructure { //通道录像参数配置
 
         public int dwSize;
         public int dwRecord;  /*是否录像 0-否 1-是*/
@@ -1467,13 +1467,13 @@ public interface HCNetSDK extends Library {
     }
 
     //云台协议表结构配置
-    class NET_DVR_PTZ_PROTOCOL extends Structure {
+    class NET_DVR_PTZ_PROTOCOL extends HCNetSDKStructure {
 
         public int dwType;               /*解码器类型值，从1开始连续递增*/
         public byte[] byDescribe = new byte[DESC_LEN]; /*解码器的描述符，和8000中的一致*/
     }
 
-    class NET_DVR_PTZCFG extends Structure {
+    class NET_DVR_PTZCFG extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_PTZ_PROTOCOL[] struPtz = (NET_DVR_PTZ_PROTOCOL[]) new NET_DVR_PTZ_PROTOCOL().toArray(PTZ_PROTOCOL_NUM);/*最大200中PTZ协议*/
@@ -1482,7 +1482,7 @@ public interface HCNetSDK extends Library {
     }
 
     /***************************云台类型(end)******************************/
-    class NET_DVR_DECODERCFG_V30 extends Structure {//通道解码器(云台)参数配置(9000扩展)
+    class NET_DVR_DECODERCFG_V30 extends HCNetSDKStructure {//通道解码器(云台)参数配置(9000扩展)
         public int dwSize;
         public int dwBaudRate;       //波特率(bps)，0－50，1－75，2－110，3－150，4－300，5－600，6－1200，7－2400，8－4800，9－9600，10－19200， 11－38400，12－57600，13－76800，14－115.2k;
         public byte byDataBit;         // 数据有几位 0－5位，1－6位，2－7位，3－8位;
@@ -1496,7 +1496,7 @@ public interface HCNetSDK extends Library {
         public byte[] bySetTrack = new byte[MAX_TRACK_V30];            /* 轨迹是否设置,0-没有设置,1-设置*/
     }
 
-    class NET_DVR_DECODERCFG extends Structure {//通道解码器(云台)参数配置
+    class NET_DVR_DECODERCFG extends HCNetSDKStructure {//通道解码器(云台)参数配置
         public int dwSize;
         public int dwBaudRate;       //波特率(bps)，0－50，1－75，2－110，3－150，4－300，5－600，6－1200，7－2400，8－4800，9－9600，10－19200， 11－38400，12－57600，13－76800，14－115.2k;
         public byte byDataBit;         // 数据有几位 0－5位，1－6位，2－7位，3－8位;
@@ -1510,7 +1510,7 @@ public interface HCNetSDK extends Library {
         public byte[] bySetTrack = new byte[MAX_TRACK];            /* 轨迹是否设置,0-没有设置,1-设置*/
     }
 
-    class NET_DVR_PPPCFG_V30 extends Structure {//ppp参数配置(子结构)
+    class NET_DVR_PPPCFG_V30 extends HCNetSDKStructure {//ppp参数配置(子结构)
         public NET_DVR_IPADDR struRemoteIP = new NET_DVR_IPADDR();    //远端IP地址
         public NET_DVR_IPADDR struLocalIP = new NET_DVR_IPADDR();        //本地IP地址
         public byte[] sLocalIPMask = new byte[16];            //本地IP地址掩码
@@ -1524,7 +1524,7 @@ public interface HCNetSDK extends Library {
         public byte[] sTelephoneNumber = new byte[PHONENUMBER_LEN];   //电话号码
     }
 
-    class NET_DVR_PPPCFG extends Structure {//ppp参数配置(子结构)
+    class NET_DVR_PPPCFG extends HCNetSDKStructure {//ppp参数配置(子结构)
         public byte[] sRemoteIP = new byte[16];                //远端IP地址
         public byte[] sLocalIP = new byte[16];                //本地IP地址
         public byte[] sLocalIPMask = new byte[16];            //本地IP地址掩码
@@ -1539,7 +1539,7 @@ public interface HCNetSDK extends Library {
     }
 
 
-    class NET_DVR_SINGLE_RS232 extends Structure {//RS232串口参数配置(9000扩展)
+    class NET_DVR_SINGLE_RS232 extends HCNetSDKStructure {//RS232串口参数配置(9000扩展)
         public int dwBaudRate;   /*波特率(bps)，0－50，1－75，2－110，3－150，4－300，5－600，6－1200，7－2400，8－4800，9－9600，10－19200， 11－38400，12－57600，13－76800，14－115.2k;*/
         public byte byDataBit;     /* 数据有几位 0－5位，1－6位，2－7位，3－8位 */
         public byte byStopBit;     /* 停止位 0－1位，1－2位 */
@@ -1548,14 +1548,14 @@ public interface HCNetSDK extends Library {
         public int dwWorkMode;   /* 工作模式，0－232串口用于PPP拨号，1－232串口用于参数控制，2－透明通道 */
     }
 
-    class NET_DVR_RS232CFG_V30 extends Structure {//RS232串口参数配置(9000扩展)
+    class NET_DVR_RS232CFG_V30 extends HCNetSDKStructure {//RS232串口参数配置(9000扩展)
         public int dwSize;
         public NET_DVR_SINGLE_RS232 struRs232 = new NET_DVR_SINGLE_RS232();/*目前只有第一个串口设置有效，所有设备都只支持一个串口，其他七个保留*/
         public byte[] byRes = new byte[84];
         public NET_DVR_PPPCFG_V30 struPPPConfig = new NET_DVR_PPPCFG_V30();/*ppp参数*/
     }
 
-    class NET_DVR_RS232CFG extends Structure {//RS232串口参数配置
+    class NET_DVR_RS232CFG extends HCNetSDKStructure {//RS232串口参数配置
         public int dwSize;
         public int dwBaudRate;//波特率(bps)，0－50，1－75，2－110，3－150，4－300，5－600，6－1200，7－2400，8－4800，9－9600，10－19200， 11－38400，12－57600，13－76800，14－115.2k;
         public byte byDataBit;// 数据有几位 0－5位，1－6位，2－7位，3－8位;
@@ -1566,7 +1566,7 @@ public interface HCNetSDK extends Library {
         public NET_DVR_PPPCFG struPPPConfig = new NET_DVR_PPPCFG();
     }
 
-    class NET_DVR_ALARMINCFG_V30 extends Structure {//报警输入参数配置(9000扩展)
+    class NET_DVR_ALARMINCFG_V30 extends HCNetSDKStructure {//报警输入参数配置(9000扩展)
         public int dwSize;
         public byte[] sAlarmInName = new byte[NAME_LEN];    /* 名称 */
         public byte byAlarmType;                //报警器类型,0：常开,1：常闭
@@ -1586,7 +1586,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[16];
     }
 
-    class NET_DVR_ALARMINCFG extends Structure {//报警输入参数配置
+    class NET_DVR_ALARMINCFG extends HCNetSDKStructure {//报警输入参数配置
         public int dwSize;
         public byte[] sAlarmInName = new byte[NAME_LEN];    /* 名称 */
         public byte byAlarmType;    //报警器类型,0：常开,1：常闭
@@ -1602,7 +1602,7 @@ public interface HCNetSDK extends Library {
         public byte[] byPTZTrack = new byte[MAX_CHANNUM];            /* 调用的云台的轨迹序号 */
     }
 
-    class NET_DVR_ADDIT_POSITION extends Structure {//车载GPS信息结构(2007-12-27)
+    class NET_DVR_ADDIT_POSITION extends HCNetSDKStructure {//车载GPS信息结构(2007-12-27)
         public byte[] sDevName = new byte[32];        /* 设备名称 */
         public int dwSpeed;            /*速度*/
         public int dwLongitude;        /* 经度*/
@@ -1611,14 +1611,14 @@ public interface HCNetSDK extends Library {
         public byte[] res = new byte[2];              /* 保留位 */
     }
 
-    class struIOAlarm extends Structure {
+    class struIOAlarm extends HCNetSDKStructure {
 
         public int dwAlarmInputNo;
         public int dwTrigerAlarmOutNum;
         public int dwTrigerRecordChanNum;
     }
 
-    class NET_DVR_TIME_EX extends Structure {
+    class NET_DVR_TIME_EX extends HCNetSDKStructure {
 
         public short wYear;
         public byte byMonth;
@@ -1629,7 +1629,7 @@ public interface HCNetSDK extends Library {
         public byte byRes;
     }
 
-    class struRecordingHost extends Structure {
+    class struRecordingHost extends HCNetSDKStructure {
 
         public byte bySubAlarmType;
         public byte[] byRes1 = new byte[3];
@@ -1637,12 +1637,12 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[116];
     }
 
-    class struAlarmHardDisk extends Structure {
+    class struAlarmHardDisk extends HCNetSDKStructure {
 
         public int dwAlarmHardDiskNum;
     }
 
-    class struAlarmChannel extends Structure {
+    class struAlarmChannel extends HCNetSDKStructure {
 
         public int dwAlarmChanNum;
     }
@@ -1656,20 +1656,20 @@ public interface HCNetSDK extends Library {
         public struRecordingHost strurecordingHost = new struRecordingHost();
     }
 
-    class NET_DVR_ALRAM_FIXED_HEADER extends Structure {
+    class NET_DVR_ALRAM_FIXED_HEADER extends HCNetSDKStructure {
 
         public int dwAlarmType;
         public NET_DVR_TIME_EX struAlarmTime = new NET_DVR_TIME_EX();
         public uStruAlarm ustruAlarm = new uStruAlarm();
     }
 
-    class NET_DVR_ALARMINFO_V40 extends Structure {
+    class NET_DVR_ALARMINFO_V40 extends HCNetSDKStructure {
 
         public NET_DVR_ALRAM_FIXED_HEADER struAlarmFixedHeader = new NET_DVR_ALRAM_FIXED_HEADER();
         public Pointer pAlarmData;
     }
 
-    class NET_DVR_ALARMINFO_V30 extends Structure {//上传报警信息(9000扩展)
+    class NET_DVR_ALARMINFO_V30 extends HCNetSDKStructure {//上传报警信息(9000扩展)
         public int dwAlarmType;/*0-信号量报警,1-硬盘满,2-信号丢失,3－移动侦测,4－硬盘未格式化,5-读写硬盘出错,6-遮挡报警,7-制式不匹配, 8-非法访问, 0xa-GPS定位信息(车载定制)*/
         public int dwAlarmInputNumber;/*报警输入端口*/
         public byte[] byAlarmOutputNumber = new byte[MAX_ALARMOUT_V30];/*触发的输出端口，为1表示对应输出*/
@@ -1679,7 +1679,7 @@ public interface HCNetSDK extends Library {
     }
 
 
-    class NET_DVR_ALARMINFO extends Structure {
+    class NET_DVR_ALARMINFO extends HCNetSDKStructure {
 
         public int dwAlarmType;/*0-信号量报警,1-硬盘满,2-信号丢失,3－移动侦测,4－硬盘未格式化,5-读写硬盘出错,6-遮挡报警,7-制式不匹配, 8-非法访问, 9-串口状态, 0xa-GPS定位信息(车载定制)*/
         public int dwAlarmInputNumber;/*报警输入端口, 当报警类型为9时该变量表示串口状态0表示正常， -1表示错误*/
@@ -1689,7 +1689,7 @@ public interface HCNetSDK extends Library {
         public int[] dwDiskNumber = new int[MAX_DISKNUM];/*dwAlarmType为1,4,5时,表示哪个硬盘, dwDiskNumber[0]位对应第1个硬盘*/
     }
 
-    class NET_DVR_ALARMINFO_EX extends Structure {//上传报警信息(杭州竞天定制 2006-07-28)
+    class NET_DVR_ALARMINFO_EX extends HCNetSDKStructure {//上传报警信息(杭州竞天定制 2006-07-28)
         public int dwAlarmType;/*0-信号量报警,1-硬盘满,2-信号丢失,3－移动侦测,4－硬盘未格式化,5-读写硬盘出错,6-遮挡报警,7-制式不匹配, 8-非法访问*/
         public int dwAlarmInputNumber;/*报警输入端口*/
         public int[] dwAlarmOutputNumber = new int[MAX_ALARMOUT];/*报警输入端口对应的输出端口，哪一位为1表示对应哪一个输出*/
@@ -1702,7 +1702,7 @@ public interface HCNetSDK extends Library {
 
     //////////////////////////////////////////////////////////////////////////////////////
     //IPC接入参数配置
-    class NET_DVR_IPDEVINFO extends Structure {/* IP设备结构 */
+    class NET_DVR_IPDEVINFO extends HCNetSDKStructure {/* IP设备结构 */
         public int dwEnable;                    /* 该IP设备是否启用 */
         public byte[] sUserName = new byte[NAME_LEN];        /* 用户名 */
         public byte[] sPassword = new byte[PASSWD_LEN];        /* 密码 */
@@ -1711,43 +1711,43 @@ public interface HCNetSDK extends Library {
         public byte[] byres = new byte[34];                /* 保留 */
     }
 
-    class NET_DVR_IPCHANINFO extends Structure {/* IP通道匹配参数 */
+    class NET_DVR_IPCHANINFO extends HCNetSDKStructure {/* IP通道匹配参数 */
         public byte byEnable;                    /* 该通道是否启用 */
         public byte byIPID;                    /* IP设备ID 取值1- MAX_IP_DEVICE */
         public byte byChannel;                    /* 通道号 */
         public byte[] byres = new byte[33];                    /* 保留 */
     }
 
-    class NET_DVR_IPPARACFG extends Structure {/* IP接入配置结构 */
+    class NET_DVR_IPPARACFG extends HCNetSDKStructure {/* IP接入配置结构 */
         public int dwSize;                                        /* 结构大小 */
         public NET_DVR_IPDEVINFO[] struIPDevInfo = (NET_DVR_IPDEVINFO[]) new NET_DVR_IPDEVINFO().toArray(MAX_IP_DEVICE);    /* IP设备 */
         public byte[] byAnalogChanEnable = new byte[MAX_ANALOG_CHANNUM];        /* 模拟通道是否启用，从低到高表示1-32通道，0表示无效 1有效 */
         public NET_DVR_IPCHANINFO[] struIPChanInfo = (NET_DVR_IPCHANINFO[]) new NET_DVR_IPCHANINFO().toArray(MAX_IP_CHANNEL);    /* IP通道 */
     }
 
-    class NET_DVR_IPALARMOUTINFO extends Structure {/* 报警输出参数 */
+    class NET_DVR_IPALARMOUTINFO extends HCNetSDKStructure {/* 报警输出参数 */
         public byte byIPID;                    /* IP设备ID取值1- MAX_IP_DEVICE */
         public byte byAlarmOut;                /* 报警输出号 */
         public byte[] byRes = new byte[18];                    /* 保留 */
     }
 
-    class NET_DVR_IPALARMOUTCFG extends Structure {/* IP报警输出配置结构 */
+    class NET_DVR_IPALARMOUTCFG extends HCNetSDKStructure {/* IP报警输出配置结构 */
         public int dwSize;                                    /* 结构大小 */
         public NET_DVR_IPALARMOUTINFO[] struIPAlarmOutInfo = (NET_DVR_IPALARMOUTINFO[]) new NET_DVR_IPALARMOUTINFO().toArray(MAX_IP_ALARMOUT);/* IP报警输出 */
     }
 
-    class NET_DVR_IPALARMININFO extends Structure {/* 报警输入参数 */
+    class NET_DVR_IPALARMININFO extends HCNetSDKStructure {/* 报警输入参数 */
         public byte byIPID;                    /* IP设备ID取值1- MAX_IP_DEVICE */
         public byte byAlarmIn;                    /* 报警输入号 */
         public byte[] byRes = new byte[18];                    /* 保留 */
     }
 
-    class NET_DVR_IPALARMINCFG extends Structure {/* IP报警输入配置结构 */
+    class NET_DVR_IPALARMINCFG extends HCNetSDKStructure {/* IP报警输入配置结构 */
         public int dwSize;                                    /* 结构大小 */
         public NET_DVR_IPALARMININFO[] struIPAlarmInInfo = (NET_DVR_IPALARMININFO[]) new NET_DVR_IPALARMININFO().toArray(MAX_IP_ALARMIN);/* IP报警输入 */
     }
 
-    class NET_DVR_IPALARMINFO extends Structure {//ipc alarm info
+    class NET_DVR_IPALARMINFO extends HCNetSDKStructure {//ipc alarm info
         public NET_DVR_IPDEVINFO[] struIPDevInfo = (NET_DVR_IPDEVINFO[]) new NET_DVR_IPDEVINFO().toArray(MAX_IP_DEVICE);            /* IP设备 */
         public byte[] byAnalogChanEnable = new byte[MAX_ANALOG_CHANNUM];                /* 模拟通道是否启用，0-未启用 1-启用 */
         public NET_DVR_IPCHANINFO[] struIPChanInfo = (NET_DVR_IPCHANINFO[]) new NET_DVR_IPCHANINFO().toArray(MAX_IP_CHANNEL);            /* IP通道 */
@@ -1755,7 +1755,7 @@ public interface HCNetSDK extends Library {
         public NET_DVR_IPALARMOUTINFO[] struIPAlarmOutInfo = (NET_DVR_IPALARMOUTINFO[]) new NET_DVR_IPALARMOUTINFO().toArray(MAX_IP_ALARMOUT); /* IP报警输出 */
     }
 
-    class NET_DVR_SINGLE_HD extends Structure {//本地硬盘信息配置
+    class NET_DVR_SINGLE_HD extends HCNetSDKStructure {//本地硬盘信息配置
         public int dwHDNo;         /*硬盘号, 取值0~MAX_DISKNUM_V30-1*/
         public int dwCapacity;     /*硬盘容量(不可设置)*/
         public int dwFreeSpace;    /*硬盘剩余空间(不可设置)*/
@@ -1766,34 +1766,34 @@ public interface HCNetSDK extends Library {
         public byte[] byRes2 = new byte[120];
     }
 
-    class NET_DVR_HDCFG extends Structure {
+    class NET_DVR_HDCFG extends HCNetSDKStructure {
 
         public int dwSize;
         public int dwHDCount;          /*硬盘数(不可设置)*/
         public NET_DVR_SINGLE_HD[] struHDInfo = (NET_DVR_SINGLE_HD[]) new NET_DVR_SINGLE_HD().toArray(MAX_DISKNUM_V30);//硬盘相关操作都需要重启才能生效；
     }
 
-    class NET_DVR_SINGLE_HDGROUP extends Structure {//本地盘组信息配置
+    class NET_DVR_SINGLE_HDGROUP extends HCNetSDKStructure {//本地盘组信息配置
         public int dwHDGroupNo;       /*盘组号(不可设置) 1-MAX_HD_GROUP*/
         public byte[] byHDGroupChans = new byte[64]; /*盘组对应的录像通道, 0-表示该通道不录象到该盘组，1-表示录象到该盘组*/
         public byte[] byRes = new byte[8];
     }
 
-    class NET_DVR_HDGROUP_CFG extends Structure {
+    class NET_DVR_HDGROUP_CFG extends HCNetSDKStructure {
 
         public int dwSize;
         public int dwHDGroupCount;        /*盘组总数(不可设置)*/
         public NET_DVR_SINGLE_HDGROUP[] struHDGroupAttr = (NET_DVR_SINGLE_HDGROUP[]) new NET_DVR_SINGLE_HDGROUP().toArray(MAX_HD_GROUP);//硬盘相关操作都需要重启才能生效；
     }
 
-    class NET_DVR_SCALECFG extends Structure {//配置缩放参数的结构
+    class NET_DVR_SCALECFG extends HCNetSDKStructure {//配置缩放参数的结构
         public int dwSize;
         public int dwMajorScale;    /* 主显示 0-不缩放，1-缩放*/
         public int dwMinorScale;    /* 辅显示 0-不缩放，1-缩放*/
         public int[] dwRes = new int[2];
     }
 
-    class NET_DVR_ALARMOUTCFG_V30 extends Structure {//DVR报警输出(9000扩展)
+    class NET_DVR_ALARMOUTCFG_V30 extends HCNetSDKStructure {//DVR报警输出(9000扩展)
         public int dwSize;
         public byte[] sAlarmOutName = new byte[NAME_LEN];    /* 名称 */
         public int dwAlarmOutDelay;    /* 输出保持时间(-1为无限，手动关闭) */
@@ -1802,7 +1802,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[16];
     }
 
-    class NET_DVR_ALARMOUTCFG extends Structure {//DVR报警输出
+    class NET_DVR_ALARMOUTCFG extends HCNetSDKStructure {//DVR报警输出
         public int dwSize;
         public byte[] sAlarmOutName = new byte[NAME_LEN];    /* 名称 */
         public int dwAlarmOutDelay;    /* 输出保持时间(-1为无限，手动关闭) */
@@ -1810,7 +1810,7 @@ public interface HCNetSDK extends Library {
         public NET_DVR_SCHEDTIMEWEEK[] struAlarmOutTime = (NET_DVR_SCHEDTIMEWEEK[]) new NET_DVR_SCHEDTIMEWEEK().toArray(MAX_DAYS);/* 报警输出激活时间段 */
     }
 
-    class NET_DVR_PREVIEWCFG_V30 extends Structure {//DVR本地预览参数(9000扩展)
+    class NET_DVR_PREVIEWCFG_V30 extends HCNetSDKStructure {//DVR本地预览参数(9000扩展)
         public int dwSize;
         public byte byPreviewNumber;//预览数目,0-1画面,1-4画面,2-9画面,3-16画面, 4-6画面, 5-8画面, 0xff:最大画面
         public byte byEnableAudio;//是否声音预览,0-不预览,1-预览
@@ -1819,7 +1819,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[24];
     }
 
-    class NET_DVR_PREVIEWCFG extends Structure {//DVR本地预览参数
+    class NET_DVR_PREVIEWCFG extends HCNetSDKStructure {//DVR本地预览参数
         public int dwSize;
         public byte byPreviewNumber;//预览数目,0-1画面,1-4画面,2-9画面,3-16画面,0xff:最大画面
         public byte byEnableAudio;//是否声音预览,0-不预览,1-预览
@@ -1827,7 +1827,7 @@ public interface HCNetSDK extends Library {
         public byte[] bySwitchSeq = new byte[MAX_WINDOW];//切换顺序,如果lSwitchSeq[i]为 0xff表示不用
     }
 
-    class NET_DVR_VGAPARA extends Structure {//DVR视频输出
+    class NET_DVR_VGAPARA extends HCNetSDKStructure {//DVR视频输出
         public short wResolution;                            /* 分辨率 */
         public short wFreq;                                    /* 刷新频率 */
         public int dwBrightness;                            /* 亮度 */
@@ -1836,20 +1836,20 @@ public interface HCNetSDK extends Library {
     /*
      * MATRIX输出参数结构
      */
-    class NET_DVR_MATRIXPARA_V30 extends Structure {
+    class NET_DVR_MATRIXPARA_V30 extends HCNetSDKStructure {
 
         public short[] wOrder = new short[MAX_ANALOG_CHANNUM];        /* 预览顺序, 0xff表示相应的窗口不预览 */
         public short wSwitchTime;                    /* 预览切换时间 */
         public byte[] res = new byte[14];
     }
 
-    class NET_DVR_MATRIXPARA extends Structure {
+    class NET_DVR_MATRIXPARA extends HCNetSDKStructure {
 
         public short wDisplayLogo;                        /* 显示视频通道号(保留) */
         public short wDisplayOsd;                        /* 显示时间(保留) */
     }
 
-    class NET_DVR_VOOUT extends Structure {
+    class NET_DVR_VOOUT extends HCNetSDKStructure {
 
         public byte byVideoFormat;                        /* 输出制式,0-PAL,1-NTSC */
         public byte byMenuAlphaValue;                    /* 菜单与背景图象对比度 */
@@ -1860,7 +1860,7 @@ public interface HCNetSDK extends Library {
         public byte byEnableScaler;                    /* 是否启动缩放 (0-不启动, 1-启动)*/
     }
 
-    class NET_DVR_VIDEOOUT_V30 extends Structure {//DVR视频输出(9000扩展)
+    class NET_DVR_VIDEOOUT_V30 extends HCNetSDKStructure {//DVR视频输出(9000扩展)
         public int dwSize;
         public NET_DVR_VOOUT[] struVOOut = (NET_DVR_VOOUT[]) new NET_DVR_VOOUT().toArray(MAX_VIDEOOUT_V30);
         public NET_DVR_VGAPARA[] struVGAPara = (NET_DVR_VGAPARA[]) new NET_DVR_VGAPARA().toArray(MAX_VGA_V30);    /* VGA参数 */
@@ -1868,14 +1868,14 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[16];
     }
 
-    class NET_DVR_VIDEOOUT extends Structure {//DVR视频输出
+    class NET_DVR_VIDEOOUT extends HCNetSDKStructure {//DVR视频输出
         public int dwSize;
         public NET_DVR_VOOUT[] struVOOut = (NET_DVR_VOOUT[]) new NET_DVR_VOOUT().toArray(MAX_VIDEOOUT);
         public NET_DVR_VGAPARA[] struVGAPara = (NET_DVR_VGAPARA[]) new NET_DVR_VGAPARA().toArray(MAX_VGA);    /* VGA参数 */
         public NET_DVR_MATRIXPARA struMatrixPara = new NET_DVR_MATRIXPARA();        /* MATRIX参数 */
     }
 
-    class NET_DVR_USER_INFO_V30 extends Structure {//单用户参数(子结构)(9000扩展)
+    class NET_DVR_USER_INFO_V30 extends HCNetSDKStructure {//单用户参数(子结构)(9000扩展)
         public byte[] sUserName = new byte[NAME_LEN];        /* 用户名 */
         public byte[] sPassword = new byte[PASSWD_LEN];        /* 密码 */
         public byte[] byLocalRight = new byte[MAX_RIGHT];    /* 本地权限 */
@@ -1925,7 +1925,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[17];
     }
 
-    class NET_DVR_USER_INFO_EX extends Structure {//单用户参数(SDK_V15扩展)(子结构)
+    class NET_DVR_USER_INFO_EX extends HCNetSDKStructure {//单用户参数(SDK_V15扩展)(子结构)
         public byte[] sUserName = new byte[NAME_LEN];        /* 用户名 */
         public byte[] sPassword = new byte[PASSWD_LEN];        /* 密码 */
         public int[] dwLocalRight = new int[MAX_RIGHT];    /* 权限 */
@@ -1954,7 +1954,7 @@ public interface HCNetSDK extends Library {
         public byte[] byMACAddr = new byte[MACADDR_LEN];    /* 物理地址 */
     }
 
-    class NET_DVR_USER_INFO extends Structure {//单用户参数(子结构)
+    class NET_DVR_USER_INFO extends HCNetSDKStructure {//单用户参数(子结构)
         public byte[] sUserName = new byte[NAME_LEN];        /* 用户名 */
         public byte[] sPassword = new byte[PASSWD_LEN];        /* 密码 */
         public int[] dwLocalRight = new int[MAX_RIGHT];    /* 权限 */
@@ -1980,34 +1980,34 @@ public interface HCNetSDK extends Library {
         public byte[] byMACAddr = new byte[MACADDR_LEN];    /* 物理地址 */
     }
 
-    class NET_DVR_USER_V30 extends Structure {//DVR用户参数(9000扩展)
+    class NET_DVR_USER_V30 extends HCNetSDKStructure {//DVR用户参数(9000扩展)
         public int dwSize;
         public NET_DVR_USER_INFO_V30[] struUser = (NET_DVR_USER_INFO_V30[]) new NET_DVR_USER_INFO_V30().toArray(MAX_USERNUM_V30);
     }
 
-    class NET_DVR_USER_EX extends Structure {//DVR用户参数(SDK_V15扩展)
+    class NET_DVR_USER_EX extends HCNetSDKStructure {//DVR用户参数(SDK_V15扩展)
         public int dwSize;
         public NET_DVR_USER_INFO_EX[] struUser = (NET_DVR_USER_INFO_EX[]) new NET_DVR_USER_INFO_EX().toArray(MAX_USERNUM);
     }
 
-    class NET_DVR_USER extends Structure {//DVR用户参数
+    class NET_DVR_USER extends HCNetSDKStructure {//DVR用户参数
         public int dwSize;
         public NET_DVR_USER_INFO[] struUser = (NET_DVR_USER_INFO[]) new NET_DVR_USER_INFO().toArray(MAX_USERNUM);
     }
 
-    class NET_DVR_EXCEPTION_V30 extends Structure {//DVR异常参数(9000扩展)
+    class NET_DVR_EXCEPTION_V30 extends HCNetSDKStructure {//DVR异常参数(9000扩展)
         public int dwSize;
         public NET_DVR_HANDLEEXCEPTION_V30[] struExceptionHandleType = (NET_DVR_HANDLEEXCEPTION_V30[]) new NET_DVR_HANDLEEXCEPTION_V30().toArray(MAX_EXCEPTIONNUM_V30);
         /*数组0-盘满,1- 硬盘出错,2-网线断,3-局域网内IP 地址冲突,4-非法访问, 5-输入/输出视频制式不匹配, 6-行车超速(车载专用), 7-视频信号异常(9000)*/
     }
 
-    class NET_DVR_EXCEPTION extends Structure {//DVR异常参数
+    class NET_DVR_EXCEPTION extends HCNetSDKStructure {//DVR异常参数
         public int dwSize;
         public NET_DVR_HANDLEEXCEPTION[] struExceptionHandleType = (NET_DVR_HANDLEEXCEPTION[]) new NET_DVR_HANDLEEXCEPTION().toArray(MAX_EXCEPTIONNUM);
         /*数组0-盘满,1- 硬盘出错,2-网线断,3-局域网内IP 地址冲突,4-非法访问, 5-输入/输出视频制式不匹配, 6-行车超速(车载专用)*/
     }
 
-    class NET_DVR_CHANNELSTATE_V30 extends Structure {//通道状态(9000扩展)
+    class NET_DVR_CHANNELSTATE_V30 extends HCNetSDKStructure {//通道状态(9000扩展)
         public byte byRecordStatic; //通道是否在录像,0-不录像,1-录像
         public byte bySignalStatic; //连接的信号状态,0-正常,1-信号丢失
         public byte byHardwareStatic;//通道硬件状态,0-正常,1-异常,例如DSP死掉
@@ -2019,7 +2019,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[12];
     }
 
-    class NET_DVR_CHANNELSTATE extends Structure {//通道状态
+    class NET_DVR_CHANNELSTATE extends HCNetSDKStructure {//通道状态
         public byte byRecordStatic; //通道是否在录像,0-不录像,1-录像
         public byte bySignalStatic; //连接的信号状态,0-正常,1-信号丢失
         public byte byHardwareStatic;//通道硬件状态,0-正常,1-异常,例如DSP死掉
@@ -2029,13 +2029,13 @@ public interface HCNetSDK extends Library {
         public int[] dwClientIP = new int[MAX_LINK];//客户端的IP地址
     }
 
-    class NET_DVR_DISKSTATE extends Structure {//硬盘状态
+    class NET_DVR_DISKSTATE extends HCNetSDKStructure {//硬盘状态
         public int dwVolume;//硬盘的容量
         public int dwFreeSpace;//硬盘的剩余空间
         public int dwHardDiskStatic; //硬盘的状态,按位:1-休眠,2-不正常,3-休眠硬盘出错
     }
 
-    class NET_DVR_WORKSTATE_V30 extends Structure {//DVR工作状态(9000扩展)
+    class NET_DVR_WORKSTATE_V30 extends HCNetSDKStructure {//DVR工作状态(9000扩展)
         public int dwDeviceStatic;    //设备的状态,0-正常,1-CPU占用率太高,超过85%,2-硬件错误,例如串口死掉
         public NET_DVR_DISKSTATE[] struHardDiskStatic = (NET_DVR_DISKSTATE[]) new NET_DVR_DISKSTATE().toArray(MAX_DISKNUM_V30);
         public NET_DVR_CHANNELSTATE_V30[] struChanStatic = (NET_DVR_CHANNELSTATE_V30[]) new NET_DVR_CHANNELSTATE_V30().toArray(MAX_CHANNUM_V30);//通道的状态
@@ -2046,7 +2046,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[10];
     }
 
-    class NET_DVR_WORKSTATE extends Structure {//DVR工作状态
+    class NET_DVR_WORKSTATE extends HCNetSDKStructure {//DVR工作状态
         public int dwDeviceStatic;    //设备的状态,0-正常,1-CPU占用率太高,超过85%,2-硬件错误,例如串口死掉
         public NET_DVR_DISKSTATE[] struHardDiskStatic = (NET_DVR_DISKSTATE[]) new NET_DVR_DISKSTATE().toArray(MAX_DISKNUM);
         public NET_DVR_CHANNELSTATE[] struChanStatic = (NET_DVR_CHANNELSTATE[]) new NET_DVR_CHANNELSTATE().toArray(MAX_CHANNUM);//通道的状态
@@ -2055,7 +2055,7 @@ public interface HCNetSDK extends Library {
         public int dwLocalDisplay;//本地显示状态,0-正常,1-不正常
     }
 
-    class NET_DVR_LOG_V30 extends Structure {//日志信息(9000扩展)
+    class NET_DVR_LOG_V30 extends HCNetSDKStructure {//日志信息(9000扩展)
         public NET_DVR_TIME strLogTime = new NET_DVR_TIME();
         public int dwMajorType;    //主类型 1-报警; 2-异常; 3-操作; 0xff-全部
         public int dwMinorType;//次类型 0-全部;
@@ -2072,7 +2072,7 @@ public interface HCNetSDK extends Library {
     }
 
     //日志信息
-    class NET_DVR_LOG extends Structure {
+    class NET_DVR_LOG extends HCNetSDKStructure {
 
         public NET_DVR_TIME strLogTime = new NET_DVR_TIME();
         public int dwMajorType;    //主类型 1-报警; 2-异常; 3-操作; 0xff-全部
@@ -2088,15 +2088,15 @@ public interface HCNetSDK extends Library {
     }
 
     /************************DVR日志 end***************************/
-    class NET_DVR_ALARMOUTSTATUS_V30 extends Structure {//报警输出状态(9000扩展)
+    class NET_DVR_ALARMOUTSTATUS_V30 extends HCNetSDKStructure {//报警输出状态(9000扩展)
         public byte[] Output = new byte[MAX_ALARMOUT_V30];
     }
 
-    class NET_DVR_ALARMOUTSTATUS extends Structure {//报警输出状态
+    class NET_DVR_ALARMOUTSTATUS extends HCNetSDKStructure {//报警输出状态
         public byte[] Output = new byte[MAX_ALARMOUT];
     }
 
-    class NET_DVR_TRADEINFO extends Structure {//交易信息
+    class NET_DVR_TRADEINFO extends HCNetSDKStructure {//交易信息
         public short m_Year;
         public short m_Month;
         public short m_Day;
@@ -2110,11 +2110,11 @@ public interface HCNetSDK extends Library {
         public int dwCash;            //交易金额
     }
 
-    class NET_DVR_FRAMETYPECODE extends Structure {/*帧格式*/
+    class NET_DVR_FRAMETYPECODE extends HCNetSDKStructure {/*帧格式*/
         public byte[] code = new byte[12];        /* 代码 */
     }
 
-    class NET_DVR_FRAMEFORMAT_V30 extends Structure {//ATM参数(9000扩展)
+    class NET_DVR_FRAMEFORMAT_V30 extends HCNetSDKStructure {//ATM参数(9000扩展)
         public int dwSize;
         public NET_DVR_IPADDR struATMIP = new NET_DVR_IPADDR();                /* ATM IP地址 */
         public int dwATMType;                            /* ATM类型 */
@@ -2134,7 +2134,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[24];
     }
 
-    class NET_DVR_FRAMEFORMAT extends Structure {//ATM参数
+    class NET_DVR_FRAMEFORMAT extends HCNetSDKStructure {//ATM参数
         public int dwSize;
         public byte[] sATMIP = new byte[16];                        /* ATM IP地址 */
         public int dwATMType;                        /* ATM类型 */
@@ -2151,13 +2151,13 @@ public interface HCNetSDK extends Library {
         public NET_DVR_FRAMETYPECODE[] frameTypeCode = (NET_DVR_FRAMETYPECODE[]) new NET_DVR_FRAMETYPECODE().toArray(10);    /* 类型 */
     }
 
-    class NET_DVR_FTPTYPECODE extends Structure {
+    class NET_DVR_FTPTYPECODE extends HCNetSDKStructure {
 
         public byte[] sFtpType = new byte[32];     /*客户定义的操作类型*/
         public byte[] sFtpCode = new byte[8];      /*客户定义的操作类型的对应的码*/
     }
 
-    class NET_DVR_FRAMEFORMAT_EX extends Structure {//ATM参数添加FTP上传参数, 俄罗斯银行定制, 2006-11-17
+    class NET_DVR_FRAMEFORMAT_EX extends HCNetSDKStructure {//ATM参数添加FTP上传参数, 俄罗斯银行定制, 2006-11-17
         public int dwSize;
         public byte[] sATMIP = new byte[16];                        /* ATM IP地址 */
         public int dwATMType;                        /* ATM类型 */
@@ -2183,7 +2183,7 @@ public interface HCNetSDK extends Library {
         public int dwNewPort;  //端口
     }
 
-    class Bind extends Structure {
+    class Bind extends HCNetSDKStructure {
 
         public boolean bind;
     }
@@ -2191,7 +2191,7 @@ public interface HCNetSDK extends Library {
 
     /*****************************DS-6001D/F(begin)***************************/
     //DS-6001D Decoder
-    class NET_DVR_DECODERINFO extends Structure {
+    class NET_DVR_DECODERINFO extends HCNetSDKStructure {
 
         public byte[] byEncoderIP = new byte[16];        //解码设备连接的服务器IP
         public byte[] byEncoderUser = new byte[16];        //解码设备连接的服务器的用户名
@@ -2202,7 +2202,7 @@ public interface HCNetSDK extends Library {
         public byte[] reservedData = new byte[4];        //保留
     }
 
-    class NET_DVR_DECODERSTATE extends Structure {
+    class NET_DVR_DECODERSTATE extends HCNetSDKStructure {
 
         public byte[] byEncoderIP = new byte[16];        //解码设备连接的服务器IP
         public byte[] byEncoderUser = new byte[16];        //解码设备连接的服务器的用户名
@@ -2214,7 +2214,7 @@ public interface HCNetSDK extends Library {
         public byte[] reservedData = new byte[4];        //保留
     }
 
-    class NET_DVR_DECCHANINFO extends Structure {
+    class NET_DVR_DECCHANINFO extends HCNetSDKStructure {
 
         public byte[] sDVRIP = new byte[16];                /* DVR IP地址 */
         public short wDVRPort;                    /* 端口号 */
@@ -2225,21 +2225,21 @@ public interface HCNetSDK extends Library {
         public byte byLinkType;                /* 连接类型 0－主码流 1－子码流 */
     }
 
-    class NET_DVR_DECINFO extends Structure {/*每个解码通道的配置*/
+    class NET_DVR_DECINFO extends HCNetSDKStructure {/*每个解码通道的配置*/
         public byte byPoolChans;            /*每路解码通道上的循环通道数量, 最多4通道 0表示没有解码*/
         public NET_DVR_DECCHANINFO[] struchanConInfo = (NET_DVR_DECCHANINFO[]) new NET_DVR_DECCHANINFO().toArray(MAX_DECPOOLNUM);
         public byte byEnablePoll;            /*是否轮巡 0-否 1-是*/
         public byte byPoolTime;                /*轮巡时间 0-保留 1-10秒 2-15秒 3-20秒 4-30秒 5-45秒 6-1分钟 7-2分钟 8-5分钟 */
     }
 
-    class NET_DVR_DECCFG extends Structure {/*整个设备解码配置*/
+    class NET_DVR_DECCFG extends HCNetSDKStructure {/*整个设备解码配置*/
         public int dwSize;
         public int dwDecChanNum;        /*解码通道的数量*/
         public NET_DVR_DECINFO[] struDecInfo = (NET_DVR_DECINFO[]) new NET_DVR_DECINFO().toArray(MAX_DECNUM);
     }
 
     //2005-08-01
-    class NET_DVR_PORTINFO extends Structure {/* 解码设备透明通道设置 */
+    class NET_DVR_PORTINFO extends HCNetSDKStructure {/* 解码设备透明通道设置 */
         public int dwEnableTransPort;    /* 是否启动透明通道 0－不启用 1－启用*/
         public byte[] sDecoderIP = new byte[16];        /* DVR IP地址 */
         public short wDecoderPort;            /* 端口号 */
@@ -2247,14 +2247,14 @@ public interface HCNetSDK extends Library {
         public byte[] cReserve = new byte[4];
     }
 
-    class NET_DVR_PORTCFG extends Structure {
+    class NET_DVR_PORTCFG extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_PORTINFO[] struTransPortInfo = (NET_DVR_PORTINFO[]) new NET_DVR_PORTINFO().toArray(MAX_TRANSPARENTNUM); /* 数组0表示232 数组1表示485 */
     }
 
     // https://jna.dev.java.net/javadoc/com/sun/jna/Union.html#setType see how to use the JNA Union
-    class NET_DVR_PLAYREMOTEFILE extends Structure {/* 控制网络文件回放 */
+    class NET_DVR_PLAYREMOTEFILE extends HCNetSDKStructure {/* 控制网络文件回放 */
         public int dwSize;
         public byte[] sDecoderIP = new byte[16];        /* DVR IP地址 */
         public short wDecoderPort;            /* 端口号 */
@@ -2265,7 +2265,7 @@ public interface HCNetSDK extends Library {
 
             public byte[] byFile = new byte[100];        // 回放的文件名
 
-            public static class bytime extends Structure {
+            public static class bytime extends HCNetSDKStructure {
 
                 public int dwChannel;
                 public byte[] sUserName = new byte[NAME_LEN];    //请求视频用户名
@@ -2276,7 +2276,7 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class NET_DVR_DECCHANSTATUS extends Structure {/*当前设备解码连接状态*/
+    class NET_DVR_DECCHANSTATUS extends HCNetSDKStructure {/*当前设备解码连接状态*/
         public int dwWorkType;        /*工作方式：1：轮巡、2：动态连接解码、3：文件回放下载 4：按时间回放下载*/
         public byte[] sDVRIP = new byte[16];        /*连接的设备ip*/
         public short wDVRPort;            /*连接端口号*/
@@ -2289,19 +2289,19 @@ public interface HCNetSDK extends Library {
 
         public static class objectInfo extends Union {
 
-            public static class userInfo extends Structure {
+            public static class userInfo extends HCNetSDKStructure {
 
                 public byte[] sUserName = new byte[NAME_LEN];    //请求视频用户名
                 public byte[] sPassword = new byte[PASSWD_LEN];    // 密码
                 public byte[] cReserve = new byte[52];
             }
 
-            public static class fileInfo extends Structure {
+            public static class fileInfo extends HCNetSDKStructure {
 
                 public byte[] fileName = new byte[100];
             }
 
-            public static class timeInfo extends Structure {
+            public static class timeInfo extends HCNetSDKStructure {
 
                 public int dwChannel;
                 public byte[] sUserName = new byte[NAME_LEN];    //请求视频用户名
@@ -2312,7 +2312,7 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class NET_DVR_DECSTATUS extends Structure {
+    class NET_DVR_DECSTATUS extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_DECCHANSTATUS[] struDecState = (NET_DVR_DECCHANSTATUS[]) new NET_DVR_DECCHANSTATUS().toArray(MAX_DECNUM);
@@ -2320,7 +2320,7 @@ public interface HCNetSDK extends Library {
 
     /*****************************DS-6001D/F(end)***************************/
 
-    class NET_DVR_SHOWSTRINGINFO extends Structure {//单字符参数(子结构)
+    class NET_DVR_SHOWSTRINGINFO extends HCNetSDKStructure {//单字符参数(子结构)
         public short wShowString;                // 预览的图象上是否显示字符,0-不显示,1-显示 区域大小704*576,单个字符的大小为32*32
         public short wStringSize;                /* 该行字符的长度，不能大于44个字符 */
         public short wShowStringTopLeftX;        /* 字符显示位置的x坐标 */
@@ -2329,21 +2329,21 @@ public interface HCNetSDK extends Library {
     }
 
     //叠加字符(9000扩展)
-    class NET_DVR_SHOWSTRING_V30 extends Structure {
+    class NET_DVR_SHOWSTRING_V30 extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_SHOWSTRINGINFO[] struStringInfo = (NET_DVR_SHOWSTRINGINFO[]) new NET_DVR_SHOWSTRINGINFO().toArray(MAX_STRINGNUM_V30);                /* 要显示的字符内容 */
     }
 
     //叠加字符扩展(8条字符)
-    class NET_DVR_SHOWSTRING_EX extends Structure {
+    class NET_DVR_SHOWSTRING_EX extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_SHOWSTRINGINFO[] struStringInfo = (NET_DVR_SHOWSTRINGINFO[]) new NET_DVR_SHOWSTRINGINFO().toArray(MAX_STRINGNUM_EX);                /* 要显示的字符内容 */
     }
 
     //叠加字符
-    class NET_DVR_SHOWSTRING extends Structure {
+    class NET_DVR_SHOWSTRING extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_SHOWSTRINGINFO[] struStringInfo = (NET_DVR_SHOWSTRINGINFO[]) new NET_DVR_SHOWSTRINGINFO().toArray(MAX_STRINGNUM);                /* 要显示的字符内容 */
@@ -2354,19 +2354,19 @@ public interface HCNetSDK extends Library {
     /*
     EMAIL参数结构
     */
-    class NET_DVR_SENDER extends Structure {
+    class NET_DVR_SENDER extends HCNetSDKStructure {
 
         public byte[] sName = new byte[NAME_LEN];                /* 发件人姓名 */
         public byte[] sAddress = new byte[MAX_EMAIL_ADDR_LEN];        /* 发件人地址 */
     }
 
-    class NET_DVRRECEIVER extends Structure {
+    class NET_DVRRECEIVER extends HCNetSDKStructure {
 
         public byte[] sName = new byte[NAME_LEN];                /* 收件人姓名 */
         public byte[] sAddress = new byte[MAX_EMAIL_ADDR_LEN];        /* 收件人地址 */
     }
 
-    class NET_DVR_EMAILCFG_V30 extends Structure {
+    class NET_DVR_EMAILCFG_V30 extends HCNetSDKStructure {
 
         public int dwSize;
         public byte[] sAccount = new byte[NAME_LEN];                /* 账号*/
@@ -2384,7 +2384,7 @@ public interface HCNetSDK extends Library {
     /*
     DVR实现巡航数据结构
     */
-    class NET_DVR_CRUISE_PARA extends Structure {
+    class NET_DVR_CRUISE_PARA extends HCNetSDKStructure {
 
         public int dwSize;
         public byte[] byPresetNo = new byte[CRUISE_MAX_PRESET_NUMS];        /* 预置点号 */
@@ -2396,7 +2396,7 @@ public interface HCNetSDK extends Library {
 
     /****************************DS9000新增结构(end)******************************/
     //时间点
-    class NET_DVR_TIMEPOINT extends Structure {
+    class NET_DVR_TIMEPOINT extends HCNetSDKStructure {
 
         public int dwMonth;        //月 0-11表示1-12个月
         public int dwWeekNo;        //第几周 0－第1周 1－第2周 2－第3周 3－第4周 4－最后一周
@@ -2406,7 +2406,7 @@ public interface HCNetSDK extends Library {
     }
 
     //夏令时参数
-    class NET_DVR_ZONEANDDST extends Structure {
+    class NET_DVR_ZONEANDDST extends HCNetSDKStructure {
 
         public int dwSize;
         public byte[] byRes1 = new byte[16];            //保留
@@ -2418,7 +2418,7 @@ public interface HCNetSDK extends Library {
     }
 
     //图片质量
-    class NET_DVR_JPEGPARA extends Structure {
+    class NET_DVR_JPEGPARA extends HCNetSDKStructure {
 
         /*注意：当图像压缩分辨率为VGA时，支持0=CIF, 1=QCIF, 2=D1抓图，
 	当分辨率为3=UXGA(1600x1200), 4=SVGA(800x600), 5=HD720p(1280x720),6=VGA,7=XVGA, 8=HD900p
@@ -2429,7 +2429,7 @@ public interface HCNetSDK extends Library {
 
     /* aux video out parameter */
     //辅助输出参数配置
-    class NET_DVR_AUXOUTCFG extends Structure {
+    class NET_DVR_AUXOUTCFG extends HCNetSDKStructure {
 
         public int dwSize;
         public int dwAlarmOutChan;                       /* 选择报警弹出大报警通道切换时间：1画面的输出通道: 0:主输出/1:辅1/2:辅2/3:辅3/4:辅4 */
@@ -2439,7 +2439,7 @@ public interface HCNetSDK extends Library {
     }
 
     //ntp
-    class NET_DVR_NTPPARA extends Structure {
+    class NET_DVR_NTPPARA extends HCNetSDKStructure {
 
         public byte[] sNTPServer = new byte[64];   /* Domain Name or IP addr of NTP server */
         public short wInterval;         /* adjust time interval(hours) */
@@ -2452,7 +2452,7 @@ public interface HCNetSDK extends Library {
     }
 
     //ddns
-    class NET_DVR_DDNSPARA extends Structure {
+    class NET_DVR_DDNSPARA extends HCNetSDKStructure {
 
         public byte[] sUsername = new byte[NAME_LEN];  /* DDNS账号用户名/密码 */
         public byte[] sPassword = new byte[PASSWD_LEN];
@@ -2461,7 +2461,7 @@ public interface HCNetSDK extends Library {
         public byte[] res = new byte[15];
     }
 
-    class NET_DVR_DDNSPARA_EX extends Structure {
+    class NET_DVR_DDNSPARA_EX extends HCNetSDKStructure {
 
         public byte byHostIndex;                    /* 0-Hikvision DNS 1－Dyndns 2－PeanutHull(花生壳), 3-希网3322*/
         public byte byEnableDDNS;                    /*是否应用DDNS 0-否，1-是*/
@@ -2473,7 +2473,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[16];
     }
 
-    class NET_DVR_DDNS extends Structure {
+    class NET_DVR_DDNS extends HCNetSDKStructure {
 
         public byte[] sUsername = new byte[NAME_LEN];            /* DDNS账号用户名*/
         public byte[] sPassword = new byte[PASSWD_LEN];            /* 密码 */
@@ -2484,7 +2484,7 @@ public interface HCNetSDK extends Library {
     }
 
     //9000扩展
-    class NET_DVR_DDNSPARA_V30 extends Structure {
+    class NET_DVR_DDNSPARA_V30 extends HCNetSDKStructure {
 
         public byte byEnableDDNS;
         public byte byHostIndex;/* 0-Hikvision DNS(保留) 1－Dyndns 2－PeanutHull(花生壳) 3－希网3322 */
@@ -2494,7 +2494,7 @@ public interface HCNetSDK extends Library {
     }
 
     //email
-    class NET_DVR_EMAILPARA extends Structure {
+    class NET_DVR_EMAILPARA extends HCNetSDKStructure {
 
         public byte[] sUsername = new byte[64];  /* 邮件账号/密码 */
         public byte[] sPassword = new byte[64];
@@ -2506,7 +2506,7 @@ public interface HCNetSDK extends Library {
         public byte[] res = new byte[16];
     }
 
-    class NET_DVR_NETAPPCFG extends Structure {//网络参数配置
+    class NET_DVR_NETAPPCFG extends HCNetSDKStructure {//网络参数配置
         public int dwSize;
         public byte[] sDNSIp = new byte[16];                /* DNS服务器地址 */
         public NET_DVR_NTPPARA struNtpClientParam = new NET_DVR_NTPPARA();      /* NTP参数 */
@@ -2515,19 +2515,19 @@ public interface HCNetSDK extends Library {
         public byte[] res = new byte[464];            /* 保留 */
     }
 
-    class NET_DVR_SINGLE_NFS extends Structure {//nfs结构配置
+    class NET_DVR_SINGLE_NFS extends HCNetSDKStructure {//nfs结构配置
         public byte[] sNfsHostIPAddr = new byte[16];
         public byte[] sNfsDirectory = new byte[PATHNAME_LEN];        // PATHNAME_LEN = 128
     }
 
-    class NET_DVR_NFSCFG extends Structure {
+    class NET_DVR_NFSCFG extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_SINGLE_NFS[] struNfsDiskParam = (NET_DVR_SINGLE_NFS[]) new NET_DVR_SINGLE_NFS().toArray(MAX_NFS_DISK);
     }
 
     //巡航点配置(HIK IP快球专用)
-    class NET_DVR_CRUISE_POINT extends Structure {
+    class NET_DVR_CRUISE_POINT extends HCNetSDKStructure {
 
         public byte PresetNum;    //预置点
         public byte Dwell;        //停留时间
@@ -2535,14 +2535,14 @@ public interface HCNetSDK extends Library {
         public byte Reserve;    //保留
     }
 
-    class NET_DVR_CRUISE_RET extends Structure {
+    class NET_DVR_CRUISE_RET extends HCNetSDKStructure {
 
         public NET_DVR_CRUISE_POINT[] struCruisePoint = (NET_DVR_CRUISE_POINT[]) new NET_DVR_CRUISE_POINT().toArray(32);            //最大支持32个巡航点
     }
 
     /************************************多路解码器(begin)***************************************/
     //多路解码器扩展 added by zxy 2007-05-23
-    class NET_DVR_NETCFG_OTHER extends Structure {
+    class NET_DVR_NETCFG_OTHER extends HCNetSDKStructure {
 
         public int dwSize;
         public byte[] sFirstDNSIP = new byte[16];
@@ -2550,7 +2550,7 @@ public interface HCNetSDK extends Library {
         public byte[] sRes = new byte[32];
     }
 
-    class NET_DVR_MATRIX_DECINFO extends Structure {
+    class NET_DVR_MATRIX_DECINFO extends HCNetSDKStructure {
 
         public byte[] sDVRIP = new byte[16];                /* DVR IP地址 */
         public short wDVRPort;                /* 端口号 */
@@ -2562,12 +2562,12 @@ public interface HCNetSDK extends Library {
         public byte[] sPassword = new byte[PASSWD_LEN];            /* 监控主机密码 */
     }
 
-    class NET_DVR_MATRIX_DYNAMIC_DEC extends Structure {//启动/停止动态解码
+    class NET_DVR_MATRIX_DYNAMIC_DEC extends HCNetSDKStructure {//启动/停止动态解码
         public int dwSize;
         public NET_DVR_MATRIX_DECINFO struDecChanInfo = new NET_DVR_MATRIX_DECINFO();        /* 动态解码通道信息 */
     }
 
-    class NET_DVR_MATRIX_DEC_CHAN_STATUS extends Structure {//2007-12-13 modified by zxy 修改多路解码器的NET_DVR_MATRIX_DEC_CHAN_STATUS结构
+    class NET_DVR_MATRIX_DEC_CHAN_STATUS extends HCNetSDKStructure {//2007-12-13 modified by zxy 修改多路解码器的NET_DVR_MATRIX_DEC_CHAN_STATUS结构
         public int dwSize;//2008-1-16 modified by zxy dwIsLinked的状态由原来的0－未链接 1－连接修改成以下三种状态。
         public int dwIsLinked;         /* 解码通道状态 0－休眠 1－正在连接 2－已连接 3-正在解码 */
         public int dwStreamCpRate;     /* Stream copy rate, X kbits/second */
@@ -2575,7 +2575,7 @@ public interface HCNetSDK extends Library {
     }
     //end 2007-12-13 modified by zxy
 
-    class NET_DVR_MATRIX_DEC_CHAN_INFO extends Structure {
+    class NET_DVR_MATRIX_DEC_CHAN_INFO extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_MATRIX_DECINFO struDecChanInfo = new NET_DVR_MATRIX_DECINFO();        /* 解码通道信息 */
@@ -2586,14 +2586,14 @@ public interface HCNetSDK extends Library {
     }
 
     //连接的通道配置 2007-11-05
-    class NET_DVR_MATRIX_DECCHANINFO extends Structure {
+    class NET_DVR_MATRIX_DECCHANINFO extends HCNetSDKStructure {
 
         public int dwEnable;                    /* 是否启用 0－否 1－启用*/
         public NET_DVR_MATRIX_DECINFO struDecChanInfo = new NET_DVR_MATRIX_DECINFO();        /* 轮循解码通道信息 */
     }
 
     //2007-11-05 新增每个解码通道的配置
-    class NET_DVR_MATRIX_LOOP_DECINFO extends Structure {
+    class NET_DVR_MATRIX_LOOP_DECINFO extends HCNetSDKStructure {
 
         public int dwSize;
         public int dwPoolTime;            /*轮巡时间 */
@@ -2602,28 +2602,28 @@ public interface HCNetSDK extends Library {
 
     //2007-05-25  多路解码器数字矩阵配置
     //矩阵行信息 2007-12-28
-    class NET_DVR_MATRIX_ROW_ELEMENT extends Structure {
+    class NET_DVR_MATRIX_ROW_ELEMENT extends HCNetSDKStructure {
 
         public byte[] sSurvChanName = new byte[128];            /* 监控通道名称，支持中文 */
         public int dwRowNum;                /* 行号 */
         public NET_DVR_MATRIX_DECINFO struDecChanInfo = new NET_DVR_MATRIX_DECINFO();        /* 矩阵行信息 */
     }
 
-    class NET_DVR_MATRIX_ROW_INDEX extends Structure {
+    class NET_DVR_MATRIX_ROW_INDEX extends HCNetSDKStructure {
 
         public byte[] sSurvChanName = new byte[128];            /* 监控通道名称，支持中文 */
         public int dwRowNum;                /* 行号 */
     }
 
     //矩阵列信息 2007-12-28
-    class NET_DVR_MATRIX_COLUMN_ELEMENT extends Structure {
+    class NET_DVR_MATRIX_COLUMN_ELEMENT extends HCNetSDKStructure {
 
         public int dwLocalDispChanNum;    /* 本地显示通道号 */
         public int dwGlobalDispChanNum;    /* 全局显示通道号 */
         public int dwRes;            /* 保留 */
     }
 
-    class NET_DVR_MATRIX_GLOBAL_COLUMN_ELEMENT extends Structure {
+    class NET_DVR_MATRIX_GLOBAL_COLUMN_ELEMENT extends HCNetSDKStructure {
 
         public int dwConflictTag;        /* 冲突标记，0：无冲突，1：冲突 */
         public int dwConflictGloDispChan;    /* 与之冲突的全局通道号 */
@@ -2631,7 +2631,7 @@ public interface HCNetSDK extends Library {
     }
 
     //手动查看 2007-12-28
-    class NET_DVR_MATRIX_ROW_COLUMN_LINK extends Structure {
+    class NET_DVR_MATRIX_ROW_COLUMN_LINK extends HCNetSDKStructure {
 
         public int dwSize;
         /*
@@ -2658,14 +2658,14 @@ public interface HCNetSDK extends Library {
         public byte[] sFileName = new byte[128];
     }
 
-    class NET_DVR_MATRIX_PREVIEW_DISP_CHAN extends Structure {
+    class NET_DVR_MATRIX_PREVIEW_DISP_CHAN extends HCNetSDKStructure {
 
         public int dwSize;
         public int dwGlobalDispChanNum;        /* 电视墙上的电视机编号 */
         public int dwLocalDispChanNum;        /* 解码通道 */
     }
 
-    class NET_DVR_MATRIX_LOOP_PLAY_SET extends Structure {//轮循功能 2007-12-28
+    class NET_DVR_MATRIX_LOOP_PLAY_SET extends HCNetSDKStructure {//轮循功能 2007-12-28
         public int dwSize;
         /* 任意指定一个,-1为无效,如果都指定则以LocalDispChanNum为准 */
         public int dwLocalDispChanNum;    /* 解码通道 */
@@ -2673,7 +2673,7 @@ public interface HCNetSDK extends Library {
         public int dwCycTimeInterval;    /* 轮循时间间隔 */
     }
 
-    class NET_DVR_MATRIX_LOCAL_HOST_INFO extends Structure {//矩阵中心配置 2007-12-28
+    class NET_DVR_MATRIX_LOCAL_HOST_INFO extends HCNetSDKStructure {//矩阵中心配置 2007-12-28
         public int dwSize;
         public int dwLocalHostProperty;    /* 本地主机类型 0－服务器 1－客户端*/
         public int dwIsIsolated;        /* 本地主机是否独立于系统，0：联网，1：独立 */
@@ -2688,7 +2688,7 @@ public interface HCNetSDK extends Library {
     }
 
     //2007-12-22
-    class TTY_CONFIG extends Structure {
+    class TTY_CONFIG extends HCNetSDKStructure {
 
         public byte baudrate;    /* 波特率 */
         public byte databits;        /* 数据位 */
@@ -2698,7 +2698,7 @@ public interface HCNetSDK extends Library {
         public byte[] res = new byte[3];
     }
 
-    class NET_DVR_MATRIX_TRAN_CHAN_INFO extends Structure {
+    class NET_DVR_MATRIX_TRAN_CHAN_INFO extends HCNetSDKStructure {
 
         public byte byTranChanEnable;    /* 当前透明通道是否打开 0：关闭 1：打开 */
         /*
@@ -2720,7 +2720,7 @@ public interface HCNetSDK extends Library {
         public TTY_CONFIG RemoteSerialDevCfg = new TTY_CONFIG();
     }
 
-    class NET_DVR_MATRIX_TRAN_CHAN_CONFIG extends Structure {
+    class NET_DVR_MATRIX_TRAN_CHAN_CONFIG extends HCNetSDKStructure {
 
         public int dwSize;
         public byte by232IsDualChan; /* 设置哪路232透明通道是全双工的 取值1到MAX_SERIAL_NUM */
@@ -2730,7 +2730,7 @@ public interface HCNetSDK extends Library {
     }
 
     //2007-12-24 Merry Christmas Eve...
-    class NET_DVR_MATRIX_DEC_REMOTE_PLAY extends Structure {
+    class NET_DVR_MATRIX_DEC_REMOTE_PLAY extends HCNetSDKStructure {
 
         public int dwSize;
         public byte[] sDVRIP = new byte[16];        /* DVR IP地址 */
@@ -2746,14 +2746,14 @@ public interface HCNetSDK extends Library {
     }
 
 
-    class NET_DVR_MATRIX_DEC_REMOTE_PLAY_CONTROL extends Structure {
+    class NET_DVR_MATRIX_DEC_REMOTE_PLAY_CONTROL extends HCNetSDKStructure {
 
         public int dwSize;
         public int dwPlayCmd;        /* 播放命令 见文件播放命令*/
         public int dwCmdParam;        /* 播放命令参数 */
     }
 
-    class NET_DVR_MATRIX_DEC_REMOTE_PLAY_STATUS extends Structure {
+    class NET_DVR_MATRIX_DEC_REMOTE_PLAY_STATUS extends HCNetSDKStructure {
 
         public int dwSize;
         public int dwCurMediaFileLen; /* 当前播放的媒体文件长度 */
@@ -2765,7 +2765,7 @@ public interface HCNetSDK extends Library {
         public byte[] res = new byte[72];
     }
 
-    class NET_DVR_MATRIX_PASSIVEMODE extends Structure {
+    class NET_DVR_MATRIX_PASSIVEMODE extends HCNetSDKStructure {
 
         public short wTransProtol;        //传输协议，0-TCP, 1-UDP, 2-MCAST
         public short wPassivePort;        //TCP,UDP时为TCP,UDP端口, MCAST时为MCAST端口
@@ -2776,7 +2776,7 @@ public interface HCNetSDK extends Library {
 
     /************************************多路解码器(end)***************************************/
 
-    class NET_DVR_EMAILCFG extends Structure {    /* 12 bytes */
+    class NET_DVR_EMAILCFG extends HCNetSDKStructure {    /* 12 bytes */
 
         public int dwSize;
         public byte[] sUserName = new byte[32];
@@ -2794,7 +2794,7 @@ public interface HCNetSDK extends Library {
         public byte byMailinterval;            /* mail interval 0-2s, 1-3s, 2-4s. 3-5s*/
     }
 
-    class NET_DVR_COMPRESSIONCFG_NEW extends Structure {
+    class NET_DVR_COMPRESSIONCFG_NEW extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_COMPRESSION_INFO_EX struLowCompression = new NET_DVR_COMPRESSION_INFO_EX();    //定时录像
@@ -2802,7 +2802,7 @@ public interface HCNetSDK extends Library {
     }
 
     //球机位置信息
-    class NET_DVR_PTZPOS extends Structure {
+    class NET_DVR_PTZPOS extends HCNetSDKStructure {
 
         public short wAction;//获取时该字段无效
         public short wPanPos;//水平参数
@@ -2811,7 +2811,7 @@ public interface HCNetSDK extends Library {
     }
 
     //球机范围信息
-    class NET_DVR_PTZSCOPE extends Structure {
+    class NET_DVR_PTZSCOPE extends HCNetSDKStructure {
 
         public short wPanPosMin;//水平参数min
         public short wPanPosMax;//水平参数max
@@ -2822,7 +2822,7 @@ public interface HCNetSDK extends Library {
     }
 
     //rtsp配置 ipcamera专用
-    class NET_DVR_RTSPCFG extends Structure {
+    class NET_DVR_RTSPCFG extends HCNetSDKStructure {
 
         public int dwSize;         //长度
         public short wPort;          //rtsp服务器侦听端口
@@ -2839,7 +2839,7 @@ public interface HCNetSDK extends Library {
         public final static int DEMO_CHANNEL_TYPE_MIRROR = 2;
     }
 
-    class STRU_CHANNEL_INFO extends Structure {
+    class STRU_CHANNEL_INFO extends HCNetSDKStructure {
 
         public int iDeviceIndex;            //device index
         public int iChanIndex;            //channel index
@@ -2893,7 +2893,7 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class NET_DVR_IPDEVINFO_V31 extends Structure {
+    class NET_DVR_IPDEVINFO_V31 extends HCNetSDKStructure {
 
         public byte byEnable;                    //该IP设备是否有效
         public byte byProType;                    //协议类型，0-私有协议，1-松下协议，2-索尼
@@ -2909,7 +2909,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes2 = new byte[2];                //保留字段，置0
     }
 
-    class NET_DVR_IPSERVER_STREAM extends Structure {
+    class NET_DVR_IPSERVER_STREAM extends HCNetSDKStructure {
 
         public byte[] byEnable;   // 是否在线
         public byte[] byRes = new byte[3];               // 保留字节
@@ -2926,7 +2926,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes2 = new byte[11];             //  保留字节
     }
 
-    class NET_DVR_STREAM_MEDIA_SERVER_CFG extends Structure {
+    class NET_DVR_STREAM_MEDIA_SERVER_CFG extends HCNetSDKStructure {
 
         public byte byValid;            /*是否可用*/
         public byte[] byRes1 = new byte[3];
@@ -2936,7 +2936,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes2 = new byte[69];
     }
 
-    class NET_DVR_DEV_CHAN_INFO extends Structure {
+    class NET_DVR_DEV_CHAN_INFO extends HCNetSDKStructure {
 
         public NET_DVR_IPADDR struIP = new NET_DVR_IPADDR();            //DVR IP地址
         public short wDVRPort;                //端口号
@@ -2954,14 +2954,14 @@ public interface HCNetSDK extends Library {
         public byte[] sPassword = new byte[PASSWD_LEN];    //监控主机密码
     }
 
-    class NET_DVR_PU_STREAM_CFG extends Structure {
+    class NET_DVR_PU_STREAM_CFG extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_STREAM_MEDIA_SERVER_CFG struStreamMediaSvrCfg = new NET_DVR_STREAM_MEDIA_SERVER_CFG();
         public NET_DVR_DEV_CHAN_INFO struDevChanInfo = new NET_DVR_DEV_CHAN_INFO();
     }
 
-    class NET_DVR_DDNS_STREAM_CFG extends Structure {
+    class NET_DVR_DDNS_STREAM_CFG extends HCNetSDKStructure {
 
         public byte byEnable;   // 是否启用
         public byte[] byRes1 = new byte[3];
@@ -2986,7 +2986,7 @@ public interface HCNetSDK extends Library {
         public byte byFactoryType; //前端设备厂家类型,通过接口获取
     }
 
-    class NET_DVR_PU_STREAM_URL extends Structure {
+    class NET_DVR_PU_STREAM_URL extends HCNetSDKStructure {
 
         public byte byEnable;
         public byte[] strURL = new byte[240];
@@ -2996,7 +2996,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[7];
     }
 
-    class NET_DVR_HKDDNS_STREAM extends Structure {
+    class NET_DVR_HKDDNS_STREAM extends HCNetSDKStructure {
 
         public byte byEnable;                 // 是否在线
         public byte[] byRes = new byte[3];               // 保留字节
@@ -3013,7 +3013,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes2 = new byte[11];             // 保留字
     }
 
-    class NET_DVR_IPCHANINFO_V40 extends Structure {
+    class NET_DVR_IPCHANINFO_V40 extends HCNetSDKStructure {
 
         public byte byEnable;                /* 该通道是否在线 */
         public byte byRes1;
@@ -3036,7 +3036,7 @@ public interface HCNetSDK extends Library {
         public NET_DVR_IPCHANINFO_V40 struIPChan = new NET_DVR_IPCHANINFO_V40(); //直接从设备取流（扩展）
     }
 
-    class NET_DVR_STREAM_MODE extends Structure {
+    class NET_DVR_STREAM_MODE extends HCNetSDKStructure {
 
         public byte byGetStreamType; //取流方式GET_STREAM_TYPE，0-直接从设备取流，1-从流媒体取流、2-通过IPServer获得ip地址后取流,3.通过IPServer找到设备，再通过流媒体去设备的流
         //4-通过流媒体由URL去取流,5-通过hkDDNS取流，6-直接从设备取流(扩展)，使用NET_DVR_IPCHANINFO_V40结构, 7-通过RTSP协议方式进行取流
@@ -3044,7 +3044,7 @@ public interface HCNetSDK extends Library {
         public NET_DVR_GET_STREAM_UNION uGetStream;    // 不同取流方式结构体
     }
 
-    class NET_DVR_IPPARACFG_V40 extends Structure {
+    class NET_DVR_IPPARACFG_V40 extends HCNetSDKStructure {
 
         public int dwSize;                            /* 结构大小 */
         public int dwGroupNum;                    //	 设备支持的总组数
@@ -3057,14 +3057,14 @@ public interface HCNetSDK extends Library {
         public byte[] byRes2 = new byte[20];                 // 保留字节
     }
 
-    class NET_DVR_IPALARMININFO_V40 extends Structure {
+    class NET_DVR_IPALARMININFO_V40 extends HCNetSDKStructure {
 
         public int dwIPID;                    /* IP设备ID */
         public int dwAlarmIn;                /* IP设备ID对应的报警输入号 */
         public byte[] byRes = new byte[32];                /* 保留 */
     }
 
-    class NET_DVR_IPALARMINCFG_V40 extends Structure {
+    class NET_DVR_IPALARMINCFG_V40 extends HCNetSDKStructure {
 
         public int dwSize;  //结构体长度
         public int dwCurIPAlarmInNum;  //当前报警输入口数
@@ -3072,14 +3072,14 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[256];
     }
 
-    class NET_DVR_IPALARMOUTINFO_V40 extends Structure {
+    class NET_DVR_IPALARMOUTINFO_V40 extends HCNetSDKStructure {
 
         public int dwIPID;                    /* IP设备ID */
         public int dwAlarmOut;                /* IP设备ID对应的报警输出号 */
         public byte[] byRes = new byte[32];                /* 保留 */
     }
 
-    class NET_DVR_IPALARMOUTCFG_V40 extends Structure {
+    class NET_DVR_IPALARMOUTCFG_V40 extends HCNetSDKStructure {
 
         public int dwSize;  //结构体长度
         public int dwCurIPAlarmOutNum;
@@ -3087,7 +3087,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[256];
     }
 
-    class PASSIVEDECODE_CHANINFO extends Structure {
+    class PASSIVEDECODE_CHANINFO extends HCNetSDKStructure {
 
         public NativeLong lPassiveHandle;
         public NativeLong lRealHandle;
@@ -3113,7 +3113,7 @@ public interface HCNetSDK extends Library {
     }
 
     //NET_DVR_Login()参数结构
-    class NET_DVR_DEVICEINFO extends Structure {
+    class NET_DVR_DEVICEINFO extends HCNetSDKStructure {
 
         public byte[] sSerialNumber = new byte[SERIALNO_LEN];   //序列号
         public byte byAlarmInPortNum;                //DVR报警输入个数
@@ -3125,7 +3125,7 @@ public interface HCNetSDK extends Library {
     }
 
     //NET_DVR_Login_V30()参数结构
-    class NET_DVR_DEVICEINFO_V30 extends Structure {
+    class NET_DVR_DEVICEINFO_V30 extends HCNetSDKStructure {
 
         public byte[] sSerialNumber = new byte[SERIALNO_LEN];  //序列号
         public byte byAlarmInPortNum;                //报警输入个数
@@ -3140,7 +3140,7 @@ public interface HCNetSDK extends Library {
     }
 
     //NET_DVR_Login_V40()参数
-    class NET_DVR_DEVICEINFO_V40 extends Structure {
+    class NET_DVR_DEVICEINFO_V40 extends HCNetSDKStructure {
 
         public NET_DVR_DEVICEINFO_V30 struDeviceV30 = new NET_DVR_DEVICEINFO_V30();
         public byte bySupportLock;
@@ -3151,7 +3151,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes2 = new byte[256];
     }
 
-    class NET_DVR_USER_LOGIN_INFO extends Structure {
+    class NET_DVR_USER_LOGIN_INFO extends HCNetSDKStructure {
 
         public byte[] sDeviceAddress = new byte[NET_DVR_DEV_ADDRESS_MAX_LEN];
         public byte byUseTransport;
@@ -3205,20 +3205,20 @@ public interface HCNetSDK extends Library {
     }
 
     //软解码预览参数
-    class NET_DVR_CLIENTINFO extends Structure {
+    class NET_DVR_CLIENTINFO extends HCNetSDKStructure {
 
         public NativeLong lChannel;
         public NativeLong lLinkMode;
-        public HWND hPlayWnd;
+        public WinDef.HWND hPlayWnd;
         public String sMultiCastIP;
     }
 
-    class NET_DVR_PREVIEWINFO extends Structure {
+    class NET_DVR_PREVIEWINFO extends HCNetSDKStructure {
 
         public NativeLong lChannel;
         public int dwStreamType;
         public int dwLinkMode;
-        public HWND hPlayWnd;
+        public WinDef.HWND hPlayWnd;
         public boolean bBlocked;
         public boolean bPassbackRecord;
         public byte byPreviewMode;
@@ -3230,7 +3230,7 @@ public interface HCNetSDK extends Library {
     }
 
     //SDK状态信息(9000新增)
-    class NET_DVR_SDKSTATE extends Structure {
+    class NET_DVR_SDKSTATE extends HCNetSDKStructure {
 
         public int dwTotalLoginNum;        //当前login用户数
         public int dwTotalRealPlayNum;    //当前realplay路数
@@ -3247,7 +3247,7 @@ public interface HCNetSDK extends Library {
     }
 
     //SDK功能支持信息(9000新增)
-    class NET_DVR_SDKABL extends Structure {
+    class NET_DVR_SDKABL extends HCNetSDKStructure {
 
         public int dwMaxLoginNum;        //最大login用户数 MAX_LOGIN_USERS
         public int dwMaxRealPlayNum;        //最大realplay路数 WATCH_NUM
@@ -3264,7 +3264,7 @@ public interface HCNetSDK extends Library {
     }
 
     //报警设备信息
-    class NET_DVR_ALARMER extends Structure {
+    class NET_DVR_ALARMER extends HCNetSDKStructure {
 
         public byte byUserIDValid;                 /* userid是否有效 0-无效，1-有效 */
         public byte bySerialValid;                 /* 序列号是否有效 0-无效，1-有效 */
@@ -3287,7 +3287,7 @@ public interface HCNetSDK extends Library {
     }
 
     //硬解码显示区域参数(子结构)
-    class NET_DVR_DISPLAY_PARA extends Structure {
+    class NET_DVR_DISPLAY_PARA extends HCNetSDKStructure {
 
         public NativeLong bToScreen;
         public NativeLong bToVideoOut;
@@ -3299,7 +3299,7 @@ public interface HCNetSDK extends Library {
     }
 
     //硬解码预览参数
-    class NET_DVR_CARDINFO extends Structure {
+    class NET_DVR_CARDINFO extends HCNetSDKStructure {
 
         public NativeLong lChannel;//通道号
         public NativeLong lLinkMode; //最高位(31)为0表示主码流，为1表示子，0－30位表示码流连接方式:0：TCP方式,1：UDP方式,2：多播方式,3 - RTP方式，4-电话线，5－128k宽带，6－256k宽带，7－384k宽带，8－512k宽带；
@@ -3308,7 +3308,7 @@ public interface HCNetSDK extends Library {
     }
 
     //录象文件参数
-    class NET_DVR_FIND_DATA extends Structure {
+    class NET_DVR_FIND_DATA extends HCNetSDKStructure {
 
         public byte[] sFileName = new byte[100];//文件名
         public NET_DVR_TIME struStartTime = new NET_DVR_TIME();//文件的开始时间
@@ -3317,7 +3317,7 @@ public interface HCNetSDK extends Library {
     }
 
     //录象文件参数(9000)
-    class NET_DVR_FINDDATA_V30 extends Structure {
+    class NET_DVR_FINDDATA_V30 extends HCNetSDKStructure {
 
         public byte[] sFileName = new byte[100];//文件名
         public NET_DVR_TIME struStartTime = new NET_DVR_TIME();//文件的开始时间
@@ -3329,7 +3329,7 @@ public interface HCNetSDK extends Library {
     }
 
     //录象文件参数(带卡号)
-    class NET_DVR_FINDDATA_CARD extends Structure {
+    class NET_DVR_FINDDATA_CARD extends HCNetSDKStructure {
 
         public byte[] sFileName = new byte[100];//文件名
         public NET_DVR_TIME struStartTime = new NET_DVR_TIME();//文件的开始时间
@@ -3338,7 +3338,7 @@ public interface HCNetSDK extends Library {
         public byte[] sCardNum = new byte[32];
     }
 
-    class NET_DVR_STREAM_INFO extends Structure {
+    class NET_DVR_STREAM_INFO extends HCNetSDKStructure {
 
         public int dwSize;
         public byte[] byID = new byte[STREAM_ID_LEN];
@@ -3346,13 +3346,13 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[32];
     }
 
-    class NET_DVR_VOD_PARA extends Structure {
+    class NET_DVR_VOD_PARA extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_STREAM_INFO struIDInfo = new NET_DVR_STREAM_INFO();
         public NET_DVR_TIME struBeginTime = new NET_DVR_TIME();
         public NET_DVR_TIME struEndTime = new NET_DVR_TIME();
-        public HWND hWnd;
+        public WinDef.HWND hWnd;
         public byte byDrawFrame;
         public byte byVolumeType;
         public byte byVolumeNum;
@@ -3362,7 +3362,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes2 = new byte[23];
     }
 
-    class NET_DVR_FILECOND extends Structure { //录象文件查找条件结构
+    class NET_DVR_FILECOND extends HCNetSDKStructure { //录象文件查找条件结构
         public NativeLong lChannel;//通道号
         public int dwFileType;//录象文件类型0xff－全部，0－定时录像,1-移动侦测 ，2－报警触发，3-报警|移动侦测 4-报警&移动侦测 5-命令触发 6-手动录像
         public int dwIsLocked;//是否锁定 0-正常文件,1-锁定文件, 0xff表示所有文件
@@ -3372,7 +3372,7 @@ public interface HCNetSDK extends Library {
         public NET_DVR_TIME struStopTime = new NET_DVR_TIME();//结束时间
     }
 
-    class NET_DVR_FILECOND_V40 extends Structure {
+    class NET_DVR_FILECOND_V40 extends HCNetSDKStructure {
 
         public NativeLong lChannel;
         public int dwFileType;
@@ -3394,13 +3394,13 @@ public interface HCNetSDK extends Library {
 
     }
 
-    class NET_DVR_SPECIAL_FINDINFO_UNION extends Structure {
+    class NET_DVR_SPECIAL_FINDINFO_UNION extends HCNetSDKStructure {
 
         public byte[] byLength = new byte[8];
         public NET_DVR_ATMEINDINFO struATMFindInfo = new NET_DVR_ATMEINDINFO();
     }
 
-    class NET_DVR_ATMEINDINFO extends Structure {
+    class NET_DVR_ATMEINDINFO extends HCNetSDKStructure {
 
         public byte byTransactionType;
         public byte[] byRes = new byte[3];
@@ -3408,7 +3408,7 @@ public interface HCNetSDK extends Library {
 
     }
 
-    class NET_DVR_FINDDATA_V40 extends Structure {
+    class NET_DVR_FINDDATA_V40 extends HCNetSDKStructure {
 
         public byte[] sFileName = new byte[100];
         public NET_DVR_TIME struStartTime = new NET_DVR_TIME();
@@ -3426,7 +3426,7 @@ public interface HCNetSDK extends Library {
 
     }
 
-    class NET_DVR_PLAYCOND extends Structure {
+    class NET_DVR_PLAYCOND extends HCNetSDKStructure {
 
         public int dwChannel;
         public NET_DVR_TIME struStartTime = new NET_DVR_TIME();
@@ -3439,7 +3439,7 @@ public interface HCNetSDK extends Library {
     }
 
     //云台区域选择放大缩小(HIK 快球专用)
-    class NET_DVR_POINT_FRAME extends Structure {
+    class NET_DVR_POINT_FRAME extends HCNetSDKStructure {
 
         public int xTop;     //方框起始点的x坐标
         public int yTop;     //方框结束点的y坐标
@@ -3449,20 +3449,20 @@ public interface HCNetSDK extends Library {
     }
 
     //语音对讲参数
-    class NET_DVR_COMPRESSION_AUDIO extends Structure {
+    class NET_DVR_COMPRESSION_AUDIO extends HCNetSDKStructure {
 
         public byte byAudioEncType;   //音频编码类型 0-G722; 1-G711
         public byte[] byres = new byte[7];//这里保留音频的压缩参数
     }
 
     //用于接收报警信息的缓存区
-    class RECV_ALARM extends Structure {
+    class RECV_ALARM extends HCNetSDKStructure {
 
         public byte[] RecvBuffer = new byte[400];//此处的400应不小于最大报警报文长度
     }
 
     //云台花样扫描参数结构
-    class NET_DVR_PTZ_PATTERN extends Structure {
+    class NET_DVR_PTZ_PATTERN extends HCNetSDKStructure {
 
         public int dwSize;
         public int dwChannel;
@@ -3471,14 +3471,14 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[64];
     }
 
-    class NET_DVR_FUZZY_UPGRADE extends Structure {
+    class NET_DVR_FUZZY_UPGRADE extends HCNetSDKStructure {
 
         public int dwSize;
         public byte[] sUpgradeInfo = new byte[48];
         public byte[] byRes = new byte[64];
     }
 
-    class NET_DVR_SERIALSTART_V40 extends Structure {
+    class NET_DVR_SERIALSTART_V40 extends HCNetSDKStructure {
 
         public int dwSize;
         public int dwSerialType;
@@ -3486,7 +3486,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[255];
     }
 
-    class NET_DVR_AUXILIARY_DEV_UPGRADE_PARAM extends Structure {
+    class NET_DVR_AUXILIARY_DEV_UPGRADE_PARAM extends HCNetSDKStructure {
 
         public int dwSize;
         public int dwDevNo;
@@ -3496,14 +3496,14 @@ public interface HCNetSDK extends Library {
     }
 
     //客流量统计参数
-    class struStatFrame extends Structure {
+    class struStatFrame extends HCNetSDKStructure {
 
         public int dwRelativeTime;
         public int dwAbsTime;
         public byte[] byRes = new byte[92];
     }
 
-    class struStartTime extends Structure {
+    class struStartTime extends HCNetSDKStructure {
 
         public NET_DVR_TIME tmStart = new NET_DVR_TIME();
         public NET_DVR_TIME tmEnd = new NET_DVR_TIME();
@@ -3516,7 +3516,7 @@ public interface HCNetSDK extends Library {
         public struStartTime strustartTime = new struStartTime();
     }
 
-    class NET_VCA_DEV_INFO extends Structure {
+    class NET_VCA_DEV_INFO extends HCNetSDKStructure {
 
         public NET_DVR_IPADDR struDevIP = new NET_DVR_IPADDR();
         public short wPort;
@@ -3524,7 +3524,7 @@ public interface HCNetSDK extends Library {
         public byte byIvmsChannel;
     }
 
-    class NET_DVR_PDC_ALRAM_INFO extends Structure {
+    class NET_DVR_PDC_ALRAM_INFO extends HCNetSDKStructure {
 
         public int dwSize;
         public byte byMode;
@@ -3539,7 +3539,7 @@ public interface HCNetSDK extends Library {
     }
 
     //车牌识别
-    class NET_DVR_PLATE_INFO extends Structure {
+    class NET_DVR_PLATE_INFO extends HCNetSDKStructure {
 
         public byte byPlateType;
         public byte byColor;
@@ -3555,7 +3555,7 @@ public interface HCNetSDK extends Library {
 
     }
 
-    class NET_DVR_VEHICLE_INFO extends Structure {
+    class NET_DVR_VEHICLE_INFO extends HCNetSDKStructure {
 
         public int dwIndex;
         public byte byVehicleType;
@@ -3573,7 +3573,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes3 = new byte[14];
     }
 
-    class NET_DVR_PLATE_RESULT extends Structure {
+    class NET_DVR_PLATE_RESULT extends HCNetSDKStructure {
 
         public int dwSize;
         public byte byResultType;
@@ -3603,7 +3603,7 @@ public interface HCNetSDK extends Library {
     }
 
     //触发参数
-    class NET_ITC_PLATE_RECOG_PARAM extends Structure {
+    class NET_ITC_PLATE_RECOG_PARAM extends HCNetSDKStructure {
 
         public byte[] byDefaultCHN = new byte[MAX_CHJC_NUM];
         public byte byEnable;
@@ -3617,7 +3617,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[24];
     }
 
-    class NET_VCA_RECT extends Structure {
+    class NET_VCA_RECT extends HCNetSDKStructure {
 
         public float fX;
         public float fY;
@@ -3625,13 +3625,13 @@ public interface HCNetSDK extends Library {
         public float fHeight;
     }
 
-    class NET_VCA_POINT extends Structure {
+    class NET_VCA_POINT extends HCNetSDKStructure {
 
         public float fX;
         public float fY;
     }
 
-    class NET_ITC_POLYGON extends Structure {
+    class NET_ITC_POLYGON extends HCNetSDKStructure {
 
         public int dwPointNum;
         public NET_VCA_POINT[] struPos = new NET_VCA_POINT[ITC_MAX_POLYGON_POINT_NUM];
@@ -3643,7 +3643,7 @@ public interface HCNetSDK extends Library {
         }
     }
 
-    class B extends Structure {
+    class B extends HCNetSDKStructure {
 
         public int b1;
         public int b2;
@@ -3667,7 +3667,7 @@ public interface HCNetSDK extends Library {
         public NET_ITC_POLYGON struPolygon = new NET_ITC_POLYGON();
     }
 
-    class NET_ITC_PLATE_RECOG_REGION_PARAM extends Structure {
+    class NET_ITC_PLATE_RECOG_REGION_PARAM extends HCNetSDKStructure {
 
         public byte byMode;
         public byte[] byRes1 = new byte[3];
@@ -3675,7 +3675,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[16];
     }
 
-    class NET_ITC_SINGLE_IOSPEED_PARAM extends Structure {
+    class NET_ITC_SINGLE_IOSPEED_PARAM extends HCNetSDKStructure {
 
         public byte byEnable;
         public byte byTrigCoil1;
@@ -3716,7 +3716,7 @@ public interface HCNetSDK extends Library {
 
     }
 
-    class NET_ITC_POST_IOSPEED_PARAM extends Structure {
+    class NET_ITC_POST_IOSPEED_PARAM extends HCNetSDKStructure {
 
         public NET_ITC_PLATE_RECOG_PARAM struPlateRecog = new NET_ITC_PLATE_RECOG_PARAM();
         public NET_ITC_SINGLE_IOSPEED_PARAM[] struSingleIOSpeed = new NET_ITC_SINGLE_IOSPEED_PARAM[MAX_IOSPEED_GROUP_NUM];
@@ -3735,7 +3735,7 @@ public interface HCNetSDK extends Library {
         public int[] uLen = new int[1070];
     }
 
-    class NET_ITC_SINGLE_TRIGGERCFG extends Structure {
+    class NET_ITC_SINGLE_TRIGGERCFG extends HCNetSDKStructure {
 
         public byte byEnable;
         public byte[] byRes1 = new byte[3];
@@ -3744,14 +3744,14 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[64];
     }
 
-    class NET_ITC_TRIGGERCFG extends Structure {
+    class NET_ITC_TRIGGERCFG extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_ITC_SINGLE_TRIGGERCFG struTriggerParam = new NET_ITC_SINGLE_TRIGGERCFG();
         public byte[] byRes = new byte[32];
     }
 
-    class NET_DVR_AUDIO_INPUT_PARAM extends Structure {
+    class NET_DVR_AUDIO_INPUT_PARAM extends HCNetSDKStructure {
 
         public byte byAudioInputType;
         public byte byVolume;
@@ -3759,7 +3759,7 @@ public interface HCNetSDK extends Library {
         public byte[] byres = new byte[5];
     }
 
-    class NET_DVR_MULTI_STREAM_COMPRESSIONCFG_COND extends Structure {
+    class NET_DVR_MULTI_STREAM_COMPRESSIONCFG_COND extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_STREAM_INFO struStreamInfo = new NET_DVR_STREAM_INFO();
@@ -3767,7 +3767,7 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[32];
     }
 
-    class NET_DVR_MULTI_STREAM_COMPRESSIONCFG extends Structure {
+    class NET_DVR_MULTI_STREAM_COMPRESSIONCFG extends HCNetSDKStructure {
 
         public int dwSize;
         public int dwStreamType;
@@ -3776,7 +3776,7 @@ public interface HCNetSDK extends Library {
     }
 
     //时间参数结构体
-    class NET_DVR_DAYTIME extends Structure {
+    class NET_DVR_DAYTIME extends HCNetSDKStructure {
 
         public byte byHour;        //时，取值范围：0~24
         public byte byMinute;    //分，取值范围：0~60
@@ -3787,14 +3787,14 @@ public interface HCNetSDK extends Library {
     }
 
     //定时切换时间参数结构体
-    class NET_DVR_SCHEDULE_DAYTIME extends Structure {
+    class NET_DVR_SCHEDULE_DAYTIME extends HCNetSDKStructure {
 
         public NET_DVR_DAYTIME struStartTime = new NET_DVR_DAYTIME();    //开始时间
         public NET_DVR_DAYTIME struStopTime = new NET_DVR_DAYTIME();    //结束时间
     }
 
     //视频参数结构体
-    class NET_DVR_VIDEOEFFECT extends Structure {
+    class NET_DVR_VIDEOEFFECT extends HCNetSDKStructure {
 
         public byte byBrightnessLevel;        //亮度，取值范围[0,100]
         public byte byContrastLevel;        //对比度，取值范围[0,100]
@@ -3807,7 +3807,7 @@ public interface HCNetSDK extends Library {
     }
 
     //增益参数结构体
-    class NET_DVR_GAIN extends Structure {
+    class NET_DVR_GAIN extends HCNetSDKStructure {
 
         public byte byGainLevel;        //增益，单位dB，取值范围[0,100]
         public byte byGainUserSet;        //用户自定义增益，单位dB，取值范围[0,100]，对于智能交通摄像机，是CCD模式下的抓拍增益
@@ -3816,7 +3816,7 @@ public interface HCNetSDK extends Library {
     }
 
     //白平衡参数结构体
-    class NET_DVR_WHITEBALANCE extends Structure {
+    class NET_DVR_WHITEBALANCE extends HCNetSDKStructure {
 
         public byte byWhiteBalanceMode;            //0-手动白平衡（MWB），1-自动白平衡1（AWB1，范围小），2-自动白平衡2（AWB2，范围宽，2200K-15000K），3- 锁定白平衡（Locked WB），4-室外，5-室内，6-日光灯，7-钠灯，8-自动跟踪（Auto-Track），9-一次白平衡（One Push），10-室外自动（Auto-Outdoor），11-钠灯自动(Auto-Sodiumlight)，12-水银灯模式(Mercury Lamp)，13-自动白平衡(Auto)，14-白炽灯 (IncandescentLamp)，15-暖光灯(Warm Light Lamp)，16-自然光(Natural Light)
         public byte byWhiteBalanceModeRGain;    //手动白平衡时有效，手动白平衡R增益
@@ -3825,7 +3825,7 @@ public interface HCNetSDK extends Library {
     }
 
     //CCD曝光控制参数结构体
-    class NET_DVR_EXPOSURE extends Structure {
+    class NET_DVR_EXPOSURE extends HCNetSDKStructure {
 
         public byte byExposureMode;            //0-手动曝光，1-自动曝光
         public byte byAutoApertureLevel;    //自动光圈灵敏度，取值范围：0~10
@@ -3836,7 +3836,7 @@ public interface HCNetSDK extends Library {
     }
 
     //Gamma校正配置参数结构体
-    class NET_DVR_GAMMACORRECT extends Structure {
+    class NET_DVR_GAMMACORRECT extends HCNetSDKStructure {
 
         public byte byGammaCorrectionEnabled;    //Gamma校正是否启用，0-不启用，1-启用
         public byte byGammaCorrectionLevel;        //0-100
@@ -3844,7 +3844,7 @@ public interface HCNetSDK extends Library {
     }
 
     //宽动态参数结构体
-    class NET_DVR_WDR extends Structure {
+    class NET_DVR_WDR extends HCNetSDKStructure {
 
         public byte byWDREnabled;    //宽动态是否启用，0-不启用，1-启用，2-自动
         public byte byWDRLevel1;    //0-F
@@ -3854,7 +3854,7 @@ public interface HCNetSDK extends Library {
     }
 
     //日夜转换功能参数结构体
-    class NET_DVR_DAYNIGHT extends Structure {
+    class NET_DVR_DAYNIGHT extends HCNetSDKStructure {
 
         public byte byDayNightFilterType;        //日夜切换：0-白天，1-夜晚，2-自动，3-定时，4-报警输入触发
         public byte bySwitchScheduleEnabled;    //0- 启动， 1- 禁用。（保留）
@@ -3871,7 +3871,7 @@ public interface HCNetSDK extends Library {
     }
 
     //智能交通摄像机背光补偿参数结构体
-    class NET_DVR_BACKLIGHT extends Structure {
+    class NET_DVR_BACKLIGHT extends HCNetSDKStructure {
 
         public byte byBacklightMode;    //背光补偿：0-off，1-UP，2-DOWN，3-LEFT，4-RIGHT，5-MIDDLE，6-自定义，10-开，11-自动，12-多区域背光补偿
         public byte byBacklightLevel;    //背光补偿等级：0x0~0xF
@@ -3884,7 +3884,7 @@ public interface HCNetSDK extends Library {
     }
 
     //数字降噪功能参数结构体
-    class NET_DVR_NOISEREMOVE extends Structure {
+    class NET_DVR_NOISEREMOVE extends HCNetSDKStructure {
 
         public byte byDigitalNoiseRemoveEnable;    //数字去噪是否启用，0-不启用，1-普通模式数字降噪，2-专家模式数字降噪
         public byte byDigitalNoiseRemoveLevel;    //普通模式数字降噪级别：0x0~0xF
@@ -3896,7 +3896,7 @@ public interface HCNetSDK extends Library {
     }
 
     //CMOS模式下前端镜头配置
-    class NET_DVR_CMOSMODECFG extends Structure {
+    class NET_DVR_CMOSMODECFG extends HCNetSDKStructure {
 
         public byte byCaptureMod;    //抓拍模式：0-抓拍模式1；1-抓拍模式2
         public byte byBrightnessGate;    //亮度阈值
@@ -3908,7 +3908,7 @@ public interface HCNetSDK extends Library {
     }
 
     //透雾参数结构体
-    class NET_DVR_DEFOGCFG extends Structure {
+    class NET_DVR_DEFOGCFG extends HCNetSDKStructure {
 
         public byte byMode;        //透雾模式：0-不启用，1-自动模式，2-常开模式
         public byte byLevel;    //透雾等级，取值范围：0~100
@@ -3916,7 +3916,7 @@ public interface HCNetSDK extends Library {
     }
 
     //电子防抖参数结构体
-    class NET_DVR_ELECTRONICSTABILIZATION extends Structure {
+    class NET_DVR_ELECTRONICSTABILIZATION extends HCNetSDKStructure {
 
         public byte byEnable;        //电子防抖使能：0- 不启用，1- 启用
         public byte byLevel;    //电子防抖等级，取值范围：0~100
@@ -3924,14 +3924,14 @@ public interface HCNetSDK extends Library {
     }
 
     //旋转功能参数结构体
-    class NET_DVR_CORRIDOR_MODE_CCD extends Structure {
+    class NET_DVR_CORRIDOR_MODE_CCD extends HCNetSDKStructure {
 
         public byte byEnableCorridorMode;        //是否启用旋转功能：0- 不启用，1- 启用
         public byte[] byRes = new byte[11];    //保留
     }
 
     //SMART IR(防过曝)配置参数结构体
-    class NET_DVR_SMARTIR_PARAM extends Structure {
+    class NET_DVR_SMARTIR_PARAM extends HCNetSDKStructure {
 
         public byte byMode;        //SMART IR模式：0- 自动，1- 手动
         public byte byIRDistance;    //红外距离等级(等级越高，红外距离越远)：1~100，默认:50，手动模式下可修改
@@ -3940,7 +3940,7 @@ public interface HCNetSDK extends Library {
     }
 
     //P-Iris红外光圈大小等级配置结构体
-    class NET_DVR_PIRIS_PARAM extends Structure {
+    class NET_DVR_PIRIS_PARAM extends HCNetSDKStructure {
 
         public byte byMode;        //P-Iris模式：0- 自动，1- 手动
         public byte byPIrisAperture;    //红外光圈大小等级(等级越高，光圈越大)：1~100，默认:50，手动模式下可修改
@@ -3948,7 +3948,7 @@ public interface HCNetSDK extends Library {
     }
 
     //激光参数配置结构体
-    class NET_DVR_LASER_PARAM_CFG extends Structure {
+    class NET_DVR_LASER_PARAM_CFG extends HCNetSDKStructure {
 
         public byte byControlMode;    //控制模式：0-无效，1-自动，2-手动，默认：自动
         public byte bySensitivity;    //激光灯灵敏度，取值范围：0~100，默认：50
@@ -3960,7 +3960,7 @@ public interface HCNetSDK extends Library {
     }
 
     //FFC参数结构体
-    class NET_DVR_FFC_PARAM extends Structure {
+    class NET_DVR_FFC_PARAM extends HCNetSDKStructure {
 
         public byte byMode;        //1- 定时模式，2- 温度模式，3- 关闭
         public byte byRes1;        //保留，置为0
@@ -3969,7 +3969,7 @@ public interface HCNetSDK extends Library {
     }
 
     //DDE参数结构体
-    class NET_DVR_DDE_PARAM extends Structure {
+    class NET_DVR_DDE_PARAM extends HCNetSDKStructure {
 
         public byte byMode;        //1- 关闭，2- 普通模式，3- 专家模式
         public byte byNormalLevel;    //普通模式等级，取值范围：[1,100]，普通模式下生效
@@ -3978,7 +3978,7 @@ public interface HCNetSDK extends Library {
     }
 
     //AGC参数结构体
-    class NET_DVR_AGC_PARAM extends Structure {
+    class NET_DVR_AGC_PARAM extends HCNetSDKStructure {
 
         public byte bySceneType;    //1- 普通场景，2- 强光场景，3- 手动模式
         public byte byLightLevel;    //亮度等级，取值范围：[1,100]，手动模式下生效
@@ -3987,7 +3987,7 @@ public interface HCNetSDK extends Library {
     }
 
     //智能交通摄像机CCD参数结构体
-    class NET_DVR_SNAP_CAMERAPARAMCFG extends Structure {
+    class NET_DVR_SNAP_CAMERAPARAMCFG extends HCNetSDKStructure {
 
         public byte byWDRMode;    //宽动态模式：0- 关闭，1- 数字宽动态，2- 宽动态态
         public byte byWDRType;    //宽动态切换模式：0- 强制启用，1- 按时间启用，2- 按亮度启用
@@ -4000,7 +4000,7 @@ public interface HCNetSDK extends Library {
     }
 
     //前端参数配置结构体
-    class NET_DVR_CAMERAPARAMCFG_EX extends Structure {
+    class NET_DVR_CAMERAPARAMCFG_EX extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_VIDEOEFFECT struVideoEffect = new NET_DVR_VIDEOEFFECT();
@@ -4053,7 +4053,7 @@ public interface HCNetSDK extends Library {
     }
 
     //ISP前端参数配置结构体
-    class NET_DVR_ISP_CAMERAPARAMCFG extends Structure {
+    class NET_DVR_ISP_CAMERAPARAMCFG extends HCNetSDKStructure {
 
         public int dwSize;
         public byte byWorkType;
@@ -4065,13 +4065,13 @@ public interface HCNetSDK extends Library {
         public byte[] byRes1 = new byte[512];
     }
 
-    class NET_DVR_LOCAL_SDK_PATH extends Structure {
+    class NET_DVR_LOCAL_SDK_PATH extends HCNetSDKStructure {
 
         public byte[] sPath = new byte[256];
         public byte[] byRes = new byte[128];
     }
 
-    class BYTE_ARRAY extends Structure {
+    class BYTE_ARRAY extends HCNetSDKStructure {
 
         public byte[] byValue;
 
@@ -4123,7 +4123,7 @@ public interface HCNetSDK extends Library {
 
     interface FDrawFun extends Callback {
 
-        void invoke(NativeLong lRealHandle, HDC hDc, int dwUser);
+        void invoke(NativeLong lRealHandle, WinDef.HDC hDc, int dwUser);
     }
 
     interface FStdDataCallBack extends Callback {
@@ -4375,15 +4375,15 @@ public interface HCNetSDK extends Library {
 
     boolean NET_DVR_UnlockFileByName(NativeLong lUserID, String sUnlockFileName);
 
-    NativeLong NET_DVR_PlayBackByName(NativeLong lUserID, String sPlayBackFileName, HWND hWnd);
+    NativeLong NET_DVR_PlayBackByName(NativeLong lUserID, String sPlayBackFileName, WinDef.HWND hWnd);
 
-    NativeLong NET_DVR_PlayBackReverseByName(NativeLong lUserID, String sPlayBackFileName, HWND hwnd);
+    NativeLong NET_DVR_PlayBackReverseByName(NativeLong lUserID, String sPlayBackFileName, WinDef.HWND hwnd);
 
-    NativeLong NET_DVR_PlayBackByTime(NativeLong lUserID, NativeLong lChannel, NET_DVR_TIME lpStartTime, NET_DVR_TIME lpStopTime, HWND hWnd);
+    NativeLong NET_DVR_PlayBackByTime(NativeLong lUserID, NativeLong lChannel, NET_DVR_TIME lpStartTime, NET_DVR_TIME lpStopTime, WinDef.HWND hWnd);
 
     NativeLong NET_DVR_PlayBackByTime_V40(NativeLong lUserID, NET_DVR_VOD_PARA pVodPara);
 
-    NativeLong NET_DVR_PlayBackReverseByTime_V40(NativeLong lUserID, HWND hWnd, NET_DVR_PLAYCOND pPlayCond);
+    NativeLong NET_DVR_PlayBackReverseByTime_V40(NativeLong lUserID, WinDef.HWND hWnd, NET_DVR_PLAYCOND pPlayCond);
 
     boolean NET_DVR_PlayBackControl(NativeLong lPlayHandle, int dwControlCode, int dwInValue, IntByReference LPOutValue);
 
@@ -4759,7 +4759,7 @@ public interface HCNetSDK extends Library {
 
     boolean NET_DVR_SetRecvTimeOut(int nRecvTimeOut);
 
-    class NET_DVR_XML_CONFIG_INPUT extends Structure {
+    class NET_DVR_XML_CONFIG_INPUT extends HCNetSDKStructure {
 
         public int dwSize;
         public Pointer lpRequestUrl;
@@ -4770,12 +4770,12 @@ public interface HCNetSDK extends Library {
         public byte[] byRes = new byte[32];
     }
 
-    class NET_DVR_STRING_POINTER extends Structure {
+    class NET_DVR_STRING_POINTER extends HCNetSDKStructure {
 
         public byte[] byString = new byte[3 * 1024 * 1024];
     }
 
-    class NET_DVR_XML_CONFIG_OUTPUT extends Structure {
+    class NET_DVR_XML_CONFIG_OUTPUT extends HCNetSDKStructure {
 
         public int dwSize;
         public Pointer lpOutBuffer;
@@ -4789,7 +4789,7 @@ public interface HCNetSDK extends Library {
     boolean NET_DVR_STDXMLConfig(NativeLong lUserID, NET_DVR_XML_CONFIG_INPUT lpInputParam, NET_DVR_XML_CONFIG_OUTPUT lpOutputParam);
 
     //日期结构体年月日
-    class NET_DVR_DATE extends Structure {
+    class NET_DVR_DATE extends HCNetSDKStructure {
 
         public short wYear;
         public byte byMonth;
@@ -4797,7 +4797,7 @@ public interface HCNetSDK extends Library {
     }
 
     //身份证信息结构体
-    class NET_DVR_ID_CARD_INFO extends Structure {
+    class NET_DVR_ID_CARD_INFO extends HCNetSDKStructure {
 
         public int dwSize;
         public byte[] byName = new byte[128];
@@ -4814,7 +4814,7 @@ public interface HCNetSDK extends Library {
     }
 
     //身份证刷卡信息上传结构体
-    class NET_DVR_ID_CARD_INFO_ALARM extends Structure {
+    class NET_DVR_ID_CARD_INFO_ALARM extends HCNetSDKStructure {
 
         public int dwSize;
         public NET_DVR_ID_CARD_INFO struIDCardCfg;
@@ -4838,7 +4838,7 @@ public interface HCNetSDK extends Library {
     }
 
     //人体特征识别结果结构体
-    class NET_VCA_HUMAN_FEATURE extends Structure {
+    class NET_VCA_HUMAN_FEATURE extends HCNetSDKStructure {
 
         public byte byAgeGroup;    //年龄段,参见 HUMAN_AGE_GROUP_ENUM
         public byte bySex;         //性别, 1 - 男 , 2 - 女
@@ -4849,7 +4849,7 @@ public interface HCNetSDK extends Library {
     }
 
     //人脸抓拍结果
-    class NET_VCA_FACESNAP_RESULT extends Structure {
+    class NET_VCA_FACESNAP_RESULT extends HCNetSDKStructure {
 
         public int dwSize;             // 结构大小
         public int dwRelativeTime;     // 相对时标
@@ -4877,7 +4877,7 @@ public interface HCNetSDK extends Library {
     }
 
     //人脸抓拍信息
-    class NET_VCA_FACESNAP_INFO_ALARM extends Structure {
+    class NET_VCA_FACESNAP_INFO_ALARM extends HCNetSDKStructure {
 
         public int dwRelativeTime;     // 相对时标
         public int dwAbsTime;            // 绝对时标
@@ -4898,14 +4898,14 @@ public interface HCNetSDK extends Library {
     }
 
     //报警目标信息
-    class NET_VCA_TARGET_INFO extends Structure {
+    class NET_VCA_TARGET_INFO extends HCNetSDKStructure {
 
         public int dwID;
         public NET_VCA_RECT struRect;
         public byte[] byRes = new byte[4];
     }
 
-    class NET_DVR_UPGRADE_PARAM extends Structure {
+    class NET_DVR_UPGRADE_PARAM extends HCNetSDKStructure {
 
         public int dwUpgradeType;
         public String sFilename;
@@ -4919,7 +4919,7 @@ public interface HCNetSDK extends Library {
 //播放库函数声明,PlayCtrl.dll
 interface PlayCtrl extends Library {
 
-    PlayCtrl INSTANCE = (PlayCtrl) Native.loadLibrary("PlayCtrl", PlayCtrl.class);
+    PlayCtrl INSTANCE = Native.load("PlayCtrl", PlayCtrl.class);
 
     int STREAME_REALTIME = 0;
     int STREAME_FILE = 1;
@@ -4934,7 +4934,7 @@ interface PlayCtrl extends Library {
 
     boolean PlayM4_SetStreamOpenMode(NativeLong nPort, int nMode);
 
-    boolean PlayM4_Play(NativeLong nPort, HWND hWnd);
+    boolean PlayM4_Play(NativeLong nPort, WinDef.HWND hWnd);
 
     boolean PlayM4_Stop(NativeLong nPort);
 
@@ -4942,21 +4942,21 @@ interface PlayCtrl extends Library {
 }
 
 //windows gdi接口,gdi32.dll in system32 folder, 在设置遮挡区域,移动侦测区域等情况下使用
-interface GDI32 extends W32API {
+interface GDI32 extends W32APIOptions {
 
-    GDI32 INSTANCE = (GDI32) Native.loadLibrary("gdi32", GDI32.class, DEFAULT_OPTIONS);
+    GDI32 INSTANCE = Native.load("gdi32", GDI32.class, DEFAULT_OPTIONS);
 
     int TRANSPARENT = 1;
 
-    int SetBkMode(HDC hdc, int i); // 设置背景混合模式
+    int SetBkMode(WinDef.HDC hdc, int i); // 设置背景混合模式
 
-    HANDLE CreateSolidBrush(int icolor); // 创建指定颜色的笔刷
+    WinNT.HANDLE CreateSolidBrush(int icolor); // 创建指定颜色的笔刷
 }
 
 //windows user32接口,user32.dll in system32 folder, 在设置遮挡区域,移动侦测区域等情况下使用
-interface USER32 extends W32API {
+interface USER32 extends W32APIOptions {
 
-    USER32 INSTANCE = (USER32) Native.loadLibrary("user32", USER32.class, DEFAULT_OPTIONS);
+    USER32 INSTANCE = Native.load("user32", USER32.class, DEFAULT_OPTIONS);
 
     int BF_LEFT = 0x0001;
     int BF_TOP = 0x0002;
@@ -4965,7 +4965,7 @@ interface USER32 extends W32API {
     int BDR_SUNKENOUTER = 0x0002;
     int BF_RECT = (BF_LEFT | BF_TOP | BF_RIGHT | BF_BOTTOM);
 
-    int FillRect(HDC hDC, RECT lprc, HANDLE hbr);  // 填充矩形
+    int FillRect(WinDef.HDC hDC, RECT lprc, WinNT.HANDLE hbr);  // 填充矩形
 
-    boolean DrawEdge(HDC hdc, RECT qrc, int edge, int grfFlags); // 绘制矩形的一个或多个边缘
+    boolean DrawEdge(WinDef.HDC hdc, RECT qrc, int edge, int grfFlags); // 绘制矩形的一个或多个边缘
 }

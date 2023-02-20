@@ -12,8 +12,8 @@ import com.sun.javafx.stage.WindowHelper;
 import com.sun.javafx.tk.TKStage;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
-import com.sun.jna.examples.win32.User32;
-import com.sun.jna.examples.win32.W32API;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.ptr.ByteByReference;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -164,14 +164,14 @@ public class MainService {
     /**
      * 获取stage句柄，因为javafx只有主窗口存在句柄（注意有同名title的窗口）
      */
-    public static W32API.HWND getStageHWND1(Stage stage) {
+    public static WinDef.HWND getStageHWND1(Stage stage) {
         return User32.INSTANCE.FindWindow(null, stage.getTitle());
     }
 
     /**
      * 获取stage句柄，因为javafx只有主窗口存在句柄
      */
-    private static W32API.HWND getStageHWND2(Stage stage) {
+    private static WinDef.HWND getStageHWND2(Stage stage) {
         try {
             // 获取窗口对等操作的中间对象
             TKStage tkStage = WindowHelper.getPeer(stage);
@@ -182,7 +182,7 @@ public class MainService {
             Window platformWindow = (Window) getPlatformWindow.invoke(tkStage);
 
             // 从封装对象中获取本地句柄
-            return new W32API.HWND(Pointer.createConstant(platformWindow.getNativeWindow()));
+            return new WinDef.HWND(Pointer.createConstant(platformWindow.getNativeWindow()));
         } catch (Throwable e) {
             e.printStackTrace();
             return null;
