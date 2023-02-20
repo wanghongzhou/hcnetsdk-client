@@ -53,9 +53,9 @@ public class SdkOperationsImpl extends AbstractOperations implements SdkOperatio
         if (!getHcnetsdk().NET_DVR_SetConnectTime(connectTimeoutMs, 3)) {
             return lastError();
         }
-        if (!getHcnetsdk().NET_DVR_SetRecvTimeOut(recvTimeoutMs)) {
-            return lastError();
-        }
+//        if (!getHcnetsdk().NET_DVR_SetRecvTimeOut(recvTimeoutMs)) {
+//            return lastError();
+//        }
         if (!getHcnetsdk().NET_DVR_SetReconnect(reconnectIntervalMs, reconnectIntervalMs > 0)) {
             return lastError();
         }

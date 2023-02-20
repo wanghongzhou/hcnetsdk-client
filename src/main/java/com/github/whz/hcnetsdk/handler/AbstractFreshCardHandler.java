@@ -3,7 +3,6 @@ package com.github.whz.hcnetsdk.handler;
 import com.github.whz.hcnetsdk.HCNetSDK;
 import com.github.whz.hcnetsdk.model.FreshCardEvent;
 import com.github.whz.hcnetsdk.model.IDCardInfo;
-import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 
 import java.util.Calendar;
@@ -25,24 +24,23 @@ public abstract class AbstractFreshCardHandler extends AbstractHandler {
     }
 
     @Override
-    public void invoke(NativeLong lCommand, HCNetSDK.NET_DVR_ALARMER pAlarmer, HCNetSDK.RECV_ALARM pAlarmInfo, int dwBufLen,
-                       Pointer pUser) {
-        if (accept(lCommand.longValue())) {
+    public void invoke(int lCommand, HCNetSDK.NET_DVR_ALARMER pAlarmer, Pointer pAlarmInfo, int dwBufLen, Pointer pUser) {
+        if (accept(lCommand)) {
             FreshCardEvent event = new FreshCardEvent();
-            event.setCardInfo(resolveIdCardInfo(pAlarmInfo));
             event.setDeviceInfo(resolveDeviceInfo(pAlarmer));
+            event.setCardInfo(resolveIdCardInfo(pAlarmInfo));
             this.handle(event);
         }
     }
 
     // 解析身份证信息
-    private IDCardInfo resolveIdCardInfo(HCNetSDK.RECV_ALARM pAlarmInfo) {
+    private IDCardInfo resolveIdCardInfo(Pointer pAlarmInfoo) {
         IDCardInfo cardInfo = new IDCardInfo();
 
         HCNetSDK.NET_DVR_ID_CARD_INFO_ALARM idCardInfoAlarm = new HCNetSDK.NET_DVR_ID_CARD_INFO_ALARM();
         idCardInfoAlarm.write();
         Pointer pCardInfo = idCardInfoAlarm.getPointer();
-        pCardInfo.write(0, pAlarmInfo.getPointer().getByteArray(0, idCardInfoAlarm.size()), 0, idCardInfoAlarm.size());
+        pCardInfo.write(0, pAlarmInfoo.getByteArray(0, idCardInfoAlarm.size()), 0, idCardInfoAlarm.size());
         idCardInfoAlarm.read();
 
         HCNetSDK.NET_DVR_ID_CARD_INFO idCardCfg = idCardInfoAlarm.struIDCardCfg;

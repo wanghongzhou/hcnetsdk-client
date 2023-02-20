@@ -5,7 +5,6 @@ import com.github.whz.hcnetsdk.model.FaceSnapEvent;
 import com.github.whz.hcnetsdk.model.FaceSnapInfo;
 import com.github.whz.hcnetsdk.util.InnerUtils;
 import com.github.whz.hcnetsdk.util.JnaUtils;
-import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 
 /**
@@ -21,8 +20,8 @@ public abstract class AbstractFaceSnapHandler extends AbstractHandler {
     }
 
     @Override
-    public void invoke(NativeLong lCommand, HCNetSDK.NET_DVR_ALARMER pAlarmer, HCNetSDK.RECV_ALARM pAlarmInfo, int dwBufLen, Pointer pUser) {
-        if (accept(lCommand.longValue())) {
+    public void invoke(int lCommand, HCNetSDK.NET_DVR_ALARMER pAlarmer, Pointer pAlarmInfo, int dwBufLen, Pointer pUser) {
+        if (accept(lCommand)) {
             FaceSnapEvent event = new FaceSnapEvent();
             event.setDeviceInfo(resolveDeviceInfo(pAlarmer));
             event.setFaceSnapInfo(resolveFaceSnapInfo(pAlarmInfo));
@@ -31,9 +30,9 @@ public abstract class AbstractFaceSnapHandler extends AbstractHandler {
     }
 
     // 解析身份证信息
-    private FaceSnapInfo resolveFaceSnapInfo(HCNetSDK.RECV_ALARM pAlarmInfo) {
+    private FaceSnapInfo resolveFaceSnapInfo(Pointer pAlarmInfo) {
         HCNetSDK.NET_VCA_FACESNAP_RESULT strFaceSnapInfo = new HCNetSDK.NET_VCA_FACESNAP_RESULT();
-        JnaUtils.pointerToStructure(pAlarmInfo.getPointer(), strFaceSnapInfo);
+        JnaUtils.pointerToStructure(pAlarmInfo, strFaceSnapInfo);
         HCNetSDK.NET_VCA_RECT strRect = strFaceSnapInfo.struRect;
         HCNetSDK.NET_VCA_HUMAN_FEATURE strFaceFeature = strFaceSnapInfo.struFeature;
 

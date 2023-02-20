@@ -2,7 +2,6 @@ package com.github.whz.hcnetsdk.handler;
 
 import com.github.whz.hcnetsdk.HCNetSDK;
 import com.github.whz.hcnetsdk.util.InnerUtils;
-import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.ByteByReference;
 
@@ -31,7 +30,7 @@ public class VideoFileStoreCallback implements HCNetSDK.FRealDataCallBack_V30 {
     }
 
     @Override
-    public void invoke(NativeLong lRealHandle, int dwDataType, ByteByReference pBuffer, int dwBufSize, Pointer pUser) {
+    public void invoke(int lRealHandle, int dwDataType, ByteByReference pBuffer, int dwBufSize, Pointer pUser) {
         byte[] bytes = pBuffer.getPointer().getByteArray(0, dwBufSize);
         if (dwDataType == HCNetSDK.NET_DVR_SYSHEAD) {
             // 头数据

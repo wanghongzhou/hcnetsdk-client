@@ -20,7 +20,7 @@ public class Token implements Serializable {
     /**
      * 登录后的用户标识
      */
-    private NativeLong userId;
+    private int userId;
 
     /**
      * 登录的设备信息

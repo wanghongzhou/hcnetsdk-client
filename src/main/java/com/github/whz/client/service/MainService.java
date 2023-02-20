@@ -10,7 +10,6 @@ import com.github.whz.hcnetsdk.operations.HikResult;
 import com.sun.glass.ui.Window;
 import com.sun.javafx.stage.WindowHelper;
 import com.sun.javafx.tk.TKStage;
-import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
@@ -41,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class MainService {
 
-    private Long previewHandle;
+    private Integer previewHandle;
     private HikDevice currentDevice;
     private HCNetSDK.FRealDataCallBack_V30 callBack_v30;
     private final QueueInputStream inputStream = new QueueInputStream();
@@ -73,7 +72,7 @@ public class MainService {
         }
     }
 
-    public void preview(long channel, boolean callback, ImageView imageView) {
+    public void preview(int channel, boolean callback, ImageView imageView) {
         if (Objects.isNull(currentDevice)) {
             HCNetSDKClientApplication.showErrorAlert("请先登录");
             return;
@@ -86,15 +85,15 @@ public class MainService {
 
         HCNetSDK.NET_DVR_PREVIEWINFO previewinfo = new HCNetSDK.NET_DVR_PREVIEWINFO();
         previewinfo.read();
-        previewinfo.lChannel = new NativeLong(channel);  //通道号
+        previewinfo.lChannel = channel;  //通道号
         previewinfo.dwStreamType = 0; //0-主码流，1-子码流，2-三码流，3-虚拟码流，以此类推
         previewinfo.dwLinkMode = 0; //连接方式：0- TCP方式，1- UDP方式，2- 多播方式，3- RTP方式，4- RTP/RTSP，5- RTP/HTTP，6- HRUDP（可靠传输） ，7- RTSP/HTTPS，8- NPQ
-        previewinfo.bBlocked = true;  //0- 非阻塞取流，1- 阻塞取流
+        previewinfo.bBlocked = 1;  //0- 非阻塞取流，1- 阻塞取流
 
         ImageView test = new ImageView();
-        HikResult<Long> result;
+        HikResult<Integer> result;
         if (callback) {
-            callBack_v30 = (NativeLong lRealHandle, int dwDataType, ByteByReference pBuffer, int dwBufSize, Pointer pUser) -> {
+            callBack_v30 = (int lRealHandle, int dwDataType, ByteByReference pBuffer, int dwBufSize, Pointer pUser) -> {
                 switch (dwDataType) {
                     case HCNetSDK.NET_DVR_SYSHEAD: //系统头
                     case HCNetSDK.NET_DVR_STREAMDATA:   //PS封装的码流数据

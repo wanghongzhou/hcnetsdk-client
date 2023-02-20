@@ -13,7 +13,7 @@ import com.sun.jna.NativeLong;
 public class PtzOperationsImpl extends AbstractOperations implements PtzOperations {
 
     private final Token token;
-    private static final NativeLong channel = new NativeLong(1);
+    private static final int channel = 1;
 
     public PtzOperationsImpl(Token token, HCNetSDK hcNetSDK) {
         super(hcNetSDK);

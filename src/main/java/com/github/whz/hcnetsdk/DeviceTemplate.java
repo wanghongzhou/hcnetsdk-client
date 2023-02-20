@@ -40,7 +40,7 @@ public interface DeviceTemplate extends Operations {
      * <p>
      * 包括3个步骤: a.设置回调消息, b.建立上传通道, c.设置异常回调.
      */
-    HikResult<Long> setupDeploy(Token token, HCNetSDK.FMSGCallBack messageCallback, HCNetSDK.FExceptionCallBack exceptionCallback);
+    HikResult<Integer> setupDeploy(Token token, HCNetSDK.FMSGCallBack messageCallback, HCNetSDK.FExceptionCallBack exceptionCallback);
 
     /**
      * 修改设备密码.
@@ -56,32 +56,32 @@ public interface DeviceTemplate extends Operations {
      * 获取设备配置数据.
      */
     @SneakyThrows
-    <T extends Structure> HikResult<T> getDvrConfig(Token token, long channel, int command, Class<T> clazz);
+    <T extends Structure> HikResult<T> getDvrConfig(Token token, int channel, int command, Class<T> clazz);
 
     /**
      * 获取设备配置数据.
      */
-    HikResult<?> getDvrConfig(Token token, long channel, int command, Structure data);
+    HikResult<?> getDvrConfig(Token token, int channel, int command, Structure data);
 
     /**
      * 设置设备配置数据.
      */
-    HikResult<Void> setDvrConfig(Token token, long channel, int command, Structure data);
+    HikResult<Void> setDvrConfig(Token token, int channel, int command, Structure data);
 
     /**
      * 设置视频实时预览
      */
-    HikResult<Long> realPlay(Token token, HCNetSDK.FRealDataCallBack_V30 callback);
+    HikResult<Integer> realPlay(Token token, HCNetSDK.FRealDataCallBack_V30 callback);
 
     /**
      * 设置实时预览
      */
-    HikResult<Long> realPlay(Token token, HCNetSDK.NET_DVR_PREVIEWINFO previewInfo, HCNetSDK.FRealDataCallBack_V30 callback);
+    HikResult<Integer> realPlay(Token token, HCNetSDK.NET_DVR_PREVIEWINFO previewInfo, HCNetSDK.FRealDataCallBack_V30 callback);
 
     /**
      * 停止实时预览
      */
-    HikResult<Void> stopRealPlay(long realHandle);
+    HikResult<Void> stopRealPlay(int realHandle);
 
     /**
      * 本地sdk操作.

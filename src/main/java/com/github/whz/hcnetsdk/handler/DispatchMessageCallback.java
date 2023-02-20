@@ -1,7 +1,6 @@
 package com.github.whz.hcnetsdk.handler;
 
 import com.github.whz.hcnetsdk.HCNetSDK;
-import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 
 import java.util.List;
@@ -22,10 +21,9 @@ public class DispatchMessageCallback implements HCNetSDK.FMSGCallBack {
     }
 
     @Override
-    public void invoke(NativeLong lCommand, HCNetSDK.NET_DVR_ALARMER pAlarmer, HCNetSDK.RECV_ALARM pAlarmInfo, int dwBufLen, Pointer pUser) {
-        int cmd = lCommand.intValue();
+    public void invoke(int lCommand, HCNetSDK.NET_DVR_ALARMER pAlarmer, Pointer pAlarmInfo, int dwBufLen, Pointer pUser) {
         for (Handler handler : handlers) {
-            if (handler.accept(cmd)) {
+            if (handler.accept(lCommand)) {
                 handler.invoke(lCommand, pAlarmer, pAlarmInfo, dwBufLen, pUser);
                 return;
             }

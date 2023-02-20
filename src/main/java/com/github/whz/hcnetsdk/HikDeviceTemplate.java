@@ -11,7 +11,6 @@ import com.github.whz.hcnetsdk.operations.impl.AbstractOperations;
 import com.github.whz.hcnetsdk.operations.impl.MaintainOperationsImpl;
 import com.github.whz.hcnetsdk.operations.impl.PtzOperationsImpl;
 import com.github.whz.hcnetsdk.operations.impl.SdkOperationsImpl;
-import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.ptr.IntByReference;
@@ -43,13 +42,13 @@ public class HikDeviceTemplate extends AbstractOperations implements DeviceTempl
         System.arraycopy(user.getBytes(), 0, loginInfo.sUserName, 0, user.length());
         System.arraycopy(password.getBytes(), 0, loginInfo.sPassword, 0, password.length());
         loginInfo.wPort = (short) port;
-        loginInfo.bUseAsynLogin = 0;
+        loginInfo.bUseAsynLogin = false;
         loginInfo.write();
 
         HCNetSDK.NET_DVR_DEVICEINFO_V40 deviceInfo = new HCNetSDK.NET_DVR_DEVICEINFO_V40();
-        NativeLong userId = hcnetsdk.NET_DVR_Login_V40(loginInfo.getPointer(), deviceInfo.getPointer());
+        int userId = hcnetsdk.NET_DVR_Login_V40(loginInfo, deviceInfo);
         deviceInfo.read();
-        if (userId.longValue() == -1) {
+        if (userId == -1) {
             return lastError();
         }
         return HikResult.ok(Token.builder().userId(userId).deviceInfo(deviceInfo).build());
@@ -94,11 +93,11 @@ public class HikDeviceTemplate extends AbstractOperations implements DeviceTempl
         byte[] urlBytes = url.getBytes();
         inputBytes = (Objects.isNull(inputBytes) || inputBytes.length == 0) ? " ".getBytes() : inputBytes;
         // 输入参数
-        HCNetSDK.NET_DVR_STRING_POINTER urlPointer = new HCNetSDK.NET_DVR_STRING_POINTER();
+        HCNetSDK.NET_DVR_STRING_POINTER urlPointer = new HCNetSDK.NET_DVR_STRING_POINTER(0);
         urlPointer.byString = urlBytes;
         urlPointer.write();
 
-        HCNetSDK.NET_DVR_STRING_POINTER inputPointer = new HCNetSDK.NET_DVR_STRING_POINTER();
+        HCNetSDK.NET_DVR_STRING_POINTER inputPointer = new HCNetSDK.NET_DVR_STRING_POINTER(0);
         inputPointer.byString = inputBytes;
         inputPointer.write();
 
@@ -111,9 +110,9 @@ public class HikDeviceTemplate extends AbstractOperations implements DeviceTempl
         inputParams.write();
 
         // 输出参数
-        HCNetSDK.NET_DVR_STRING_POINTER outputPointer = new HCNetSDK.NET_DVR_STRING_POINTER();
+        HCNetSDK.NET_DVR_STRING_POINTER outputPointer = new HCNetSDK.NET_DVR_STRING_POINTER(0);
         outputPointer.byString = new byte[exceptOutByteSize];
-        HCNetSDK.NET_DVR_STRING_POINTER outputStatusPointer = new HCNetSDK.NET_DVR_STRING_POINTER();
+        HCNetSDK.NET_DVR_STRING_POINTER outputStatusPointer = new HCNetSDK.NET_DVR_STRING_POINTER(0);
 
         HCNetSDK.NET_DVR_XML_CONFIG_OUTPUT outputParams = new HCNetSDK.NET_DVR_XML_CONFIG_OUTPUT();
         outputParams.dwSize = outputParams.size();
@@ -149,7 +148,7 @@ public class HikDeviceTemplate extends AbstractOperations implements DeviceTempl
     }
 
     @Override
-    public HikResult<Long> setupDeploy(Token token, HCNetSDK.FMSGCallBack messageCallback, HCNetSDK.FExceptionCallBack exceptionCallback) {
+    public HikResult<Integer> setupDeploy(Token token, HCNetSDK.FMSGCallBack messageCallback, HCNetSDK.FExceptionCallBack exceptionCallback) {
         // 消息回调
         if (Objects.nonNull(messageCallback)) {
             boolean result = hcnetsdk.NET_DVR_SetDVRMessageCallBack_V30(messageCallback, null);
@@ -159,27 +158,27 @@ public class HikDeviceTemplate extends AbstractOperations implements DeviceTempl
         }
 
         // 建立通道
-        NativeLong setupAlarmHandle = hcnetsdk.NET_DVR_SetupAlarmChan_V30(token.getUserId());
-        if (setupAlarmHandle.longValue() == -1) {
+        int setupAlarmHandle = hcnetsdk.NET_DVR_SetupAlarmChan_V30(token.getUserId());
+        if (setupAlarmHandle == -1) {
             return lastError();
         }
 
         // 异常回调
         if (Objects.nonNull(exceptionCallback)) {
-            boolean setExceptionResult = hcnetsdk.NET_DVR_SetExceptionCallBack_V30(0, setupAlarmHandle.intValue(), exceptionCallback, null);
+            boolean setExceptionResult = hcnetsdk.NET_DVR_SetExceptionCallBack_V30(0, setupAlarmHandle, exceptionCallback, null);
             if (!setExceptionResult) {
                 hcnetsdk.NET_DVR_CloseAlarmChan_V30(setupAlarmHandle);
                 return lastError();
             }
         }
-        return HikResult.ok(setupAlarmHandle.longValue());
+        return HikResult.ok(setupAlarmHandle);
     }
 
     @Override
     public HikResult<Void> modifyPassword(Token token, String username, String newPassword) {
         // 获取原始配置
         HCNetSDK.NET_DVR_USER_V30 dvrUser = new HCNetSDK.NET_DVR_USER_V30();
-        boolean getResult = hcnetsdk.NET_DVR_GetDVRConfig(token.getUserId(), HCNetSDK.NET_DVR_GET_USERCFG_V30, new NativeLong(0), dvrUser.getPointer(), dvrUser.size(), new IntByReference(0));
+        boolean getResult = hcnetsdk.NET_DVR_GetDVRConfig(token.getUserId(), HCNetSDK.NET_DVR_GET_USERCFG_V30,0, dvrUser.getPointer(), dvrUser.size(), new IntByReference(0));
         if (!getResult) {
             return lastError();
         }
@@ -193,7 +192,7 @@ public class HikDeviceTemplate extends AbstractOperations implements DeviceTempl
             }
         }
         dvrUser.write();
-        boolean setResult = hcnetsdk.NET_DVR_SetDVRConfig(token.getUserId(), HCNetSDK.NET_DVR_SET_USERCFG_V30, new NativeLong(0), dvrUser.getPointer(), dvrUser.dwSize);
+        boolean setResult = hcnetsdk.NET_DVR_SetDVRConfig(token.getUserId(), HCNetSDK.NET_DVR_SET_USERCFG_V30, 0, dvrUser.getPointer(), dvrUser.dwSize);
         if (!setResult) {
             return lastError();
         }
@@ -207,7 +206,7 @@ public class HikDeviceTemplate extends AbstractOperations implements DeviceTempl
         HCNetSDK.NET_DVR_IPPARACFG mStrIpparaCfg = new HCNetSDK.NET_DVR_IPPARACFG();
         mStrIpparaCfg.write();
         Pointer lpIpParaConfig = mStrIpparaCfg.getPointer();
-        boolean getResult = hcnetsdk.NET_DVR_GetDVRConfig(token.getUserId(), HCNetSDK.NET_DVR_GET_IPPARACFG, new NativeLong(33), lpIpParaConfig, mStrIpparaCfg.size(), ibrBytesReturned);
+        boolean getResult = hcnetsdk.NET_DVR_GetDVRConfig(token.getUserId(), HCNetSDK.NET_DVR_GET_IPPARACFG, 33, lpIpParaConfig, mStrIpparaCfg.size(), ibrBytesReturned);
         if (!getResult) {
             HikResult<?> errorResult = lastError();
             errorResult.setSuccess(false);
@@ -224,7 +223,7 @@ public class HikDeviceTemplate extends AbstractOperations implements DeviceTempl
             }
         }
         mStrIpparaCfg.write();
-        boolean setResult = hcnetsdk.NET_DVR_SetDVRConfig(token.getUserId(), HCNetSDK.NET_DVR_SET_IPPARACFG, new NativeLong(33), mStrIpparaCfg.getPointer(), mStrIpparaCfg.dwSize);
+        boolean setResult = hcnetsdk.NET_DVR_SetDVRConfig(token.getUserId(), HCNetSDK.NET_DVR_SET_IPPARACFG, 33, mStrIpparaCfg.getPointer(), mStrIpparaCfg.dwSize);
         if (!setResult) {
             HikResult<?> errorResult = lastError();
             errorResult.setSuccess(false);
@@ -235,10 +234,10 @@ public class HikDeviceTemplate extends AbstractOperations implements DeviceTempl
 
     @Override
     @SneakyThrows
-    public <T extends Structure> HikResult<T> getDvrConfig(Token token, long channel, int command, Class<T> clazz) {
+    public <T extends Structure> HikResult<T> getDvrConfig(Token token, int channel, int command, Class<T> clazz) {
         T data = clazz.getDeclaredConstructor().newInstance();
         data.write();
-        boolean result = hcnetsdk.NET_DVR_GetDVRConfig(token.getUserId(), command, new NativeLong(channel), data.getPointer(), data.size(), new IntByReference(0));
+        boolean result = hcnetsdk.NET_DVR_GetDVRConfig(token.getUserId(), command, channel, data.getPointer(), data.size(), new IntByReference(0));
         if (!result) {
             return lastError();
         }
@@ -247,9 +246,9 @@ public class HikDeviceTemplate extends AbstractOperations implements DeviceTempl
     }
 
     @Override
-    public HikResult<?> getDvrConfig(Token token, long channel, int command, Structure data) {
+    public HikResult<?> getDvrConfig(Token token, int channel, int command, Structure data) {
         data.write();
-        boolean result = hcnetsdk.NET_DVR_GetDVRConfig(token.getUserId(), command, new NativeLong(channel), data.getPointer(), data.size(), new IntByReference(0));
+        boolean result = hcnetsdk.NET_DVR_GetDVRConfig(token.getUserId(), command, channel, data.getPointer(), data.size(), new IntByReference(0));
         if (!result) {
             return lastError();
         }
@@ -258,9 +257,9 @@ public class HikDeviceTemplate extends AbstractOperations implements DeviceTempl
     }
 
     @Override
-    public HikResult<Void> setDvrConfig(Token token, long channel, int command, Structure data) {
+    public HikResult<Void> setDvrConfig(Token token, int channel, int command, Structure data) {
         data.write();
-        boolean result = hcnetsdk.NET_DVR_SetDVRConfig(token.getUserId(), command, new NativeLong(channel), data.getPointer(), data.size());
+        boolean result = hcnetsdk.NET_DVR_SetDVRConfig(token.getUserId(), command, channel, data.getPointer(), data.size());
         if (!result) {
             return lastError();
         }
@@ -268,30 +267,30 @@ public class HikDeviceTemplate extends AbstractOperations implements DeviceTempl
     }
 
     @Override
-    public HikResult<Long> realPlay(Token token, HCNetSDK.FRealDataCallBack_V30 callback) {
+    public HikResult<Integer> realPlay(Token token, HCNetSDK.FRealDataCallBack_V30 callback) {
         HCNetSDK.NET_DVR_PREVIEWINFO previewInfo = new HCNetSDK.NET_DVR_PREVIEWINFO();
-        previewInfo.lChannel = new NativeLong(1);
+        previewInfo.lChannel =1;
         previewInfo.dwStreamType = 0;
         previewInfo.dwLinkMode = 1;
         previewInfo.hPlayWnd = null;
-        previewInfo.bBlocked = false;
-        previewInfo.bPassbackRecord = false;
+        previewInfo.bBlocked = 0;
+        previewInfo.bPassbackRecord = 0;
         previewInfo.byPreviewMode = 0;
         return realPlay(token, previewInfo, callback);
     }
 
     @Override
-    public HikResult<Long> realPlay(Token token, HCNetSDK.NET_DVR_PREVIEWINFO previewInfo, HCNetSDK.FRealDataCallBack_V30 callback) {
-        NativeLong realPlayHandle = hcnetsdk.NET_DVR_RealPlay_V40(token.getUserId(), previewInfo, callback, null);
-        if (realPlayHandle.longValue() == -1) {
+    public HikResult<Integer> realPlay(Token token, HCNetSDK.NET_DVR_PREVIEWINFO previewInfo, HCNetSDK.FRealDataCallBack_V30 callback) {
+        int realPlayHandle = hcnetsdk.NET_DVR_RealPlay_V40(token.getUserId(), previewInfo, callback, null);
+        if (realPlayHandle == -1) {
             return lastError();
         }
-        return HikResult.ok(realPlayHandle.longValue());
+        return HikResult.ok(realPlayHandle);
     }
 
     @Override
-    public HikResult<Void> stopRealPlay(long realHandle) {
-        boolean result = hcnetsdk.NET_DVR_StopRealPlay(new NativeLong(realHandle));
+    public HikResult<Void> stopRealPlay(int realHandle) {
+        boolean result = hcnetsdk.NET_DVR_StopRealPlay(realHandle);
         return result ? HikResult.ok() : lastError();
     }
 

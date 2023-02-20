@@ -33,7 +33,7 @@ public interface Device extends Operations {
     /**
      * 布防.
      */
-    HikResult<Long> setupDeploy(HCNetSDK.FMSGCallBack messageCallback, HCNetSDK.FExceptionCallBack exceptionCallback);
+    HikResult<Integer> setupDeploy(HCNetSDK.FMSGCallBack messageCallback, HCNetSDK.FExceptionCallBack exceptionCallback);
 
     /**
      * 透传.
@@ -48,12 +48,12 @@ public interface Device extends Operations {
     /**
      * 获取设备配置.
      */
-    <T extends Structure> HikResult<T> getDvrConfig(long channel, int command, Class<T> clazz);
+    <T extends Structure> HikResult<T> getDvrConfig(int channel, int command, Class<T> clazz);
 
     /**
      * 设置设备配置.
      */
-    HikResult<Void> setDvrConfig(long channel, int command, Structure settings);
+    HikResult<Void> setDvrConfig(int channel, int command, Structure settings);
 
     /**
      * 修改指定用户密码.

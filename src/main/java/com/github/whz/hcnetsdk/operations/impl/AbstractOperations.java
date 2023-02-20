@@ -4,6 +4,7 @@ import com.github.whz.hcnetsdk.HCNetSDK;
 import com.github.whz.hcnetsdk.operations.HikResult;
 import com.github.whz.hcnetsdk.operations.Operations;
 import com.sun.jna.NativeLong;
+import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.NativeLongByReference;
 
 public abstract class AbstractOperations implements Operations {
@@ -27,6 +28,6 @@ public abstract class AbstractOperations implements Operations {
         if (code == 3) {
             return HikResult.fail(code, "sdk not init.");
         }
-        return HikResult.fail(code, hcNetSDK.NET_DVR_GetErrorMsg(new NativeLongByReference(new NativeLong(code))));
+        return HikResult.fail(code, hcNetSDK.NET_DVR_GetErrorMsg(new IntByReference(code)));
     }
 }

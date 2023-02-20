@@ -3,20 +3,12 @@ package com.github.whz.hcnetsdk.operations.impl;
 import com.github.whz.hcnetsdk.DeviceTemplate;
 import com.github.whz.hcnetsdk.HCNetSDK;
 import com.github.whz.hcnetsdk.model.Token;
-import com.github.whz.hcnetsdk.model.UpgradeAsyncResponse;
-import com.github.whz.hcnetsdk.model.UpgradeResponse;
 import com.github.whz.hcnetsdk.operations.HikResult;
 import com.github.whz.hcnetsdk.operations.MaintainOperations;
-import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
-import com.sun.jna.ptr.IntByReference;
-import lombok.SneakyThrows;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 设备维护.
@@ -80,117 +72,116 @@ public class MaintainOperationsImpl extends AbstractOperations implements Mainta
         return deviceTemplate.setDvrConfig(token, 0, HCNetSDK.NET_DVR_SET_TIMECFG, netDvrTime);
     }
 
-    @Override
-    @SneakyThrows
-    public HikResult<UpgradeResponse> upgradeSyncForDVR(String sdkPath) {
-        HikResult<UpgradeAsyncResponse> upgradeResult = this.upgradeAsyncForDVR(sdkPath);
-        if (!upgradeResult.isSuccess()) {
-            return HikResult.fail(upgradeResult.getErrorCode(), upgradeResult.getErrorMsg());
-        }
-        UpgradeAsyncResponse asyncResponse = upgradeResult.getData();
-        UpgradeResponse response = asyncResponse.getFuture().get();
-        return HikResult.ok(response);
-    }
-
-    @Override
-    public HikResult<UpgradeResponse> upgradeSyncForACS(String sdkPath, int deviceNo) {
-        HCNetSDK.NET_DVR_UPGRADE_PARAM upgradeParam = new HCNetSDK.NET_DVR_UPGRADE_PARAM();
-        upgradeParam.dwUpgradeType = 0;
-        upgradeParam.sFilename = sdkPath;
-        upgradeParam.pInbuffer = new IntByReference(deviceNo).getPointer();
-        upgradeParam.dwBufferLen = 4;
-        return upgradeSync(upgradeParam);
-    }
-
-    @Override
-    @SneakyThrows
-    public HikResult<UpgradeResponse> upgradeSync(HCNetSDK.NET_DVR_UPGRADE_PARAM upgradeParam) {
-        HikResult<UpgradeAsyncResponse> upgradeResult = this.upgradeAsync(upgradeParam);
-        if (!upgradeResult.isSuccess()) {
-            return HikResult.fail(upgradeResult.getErrorCode(), upgradeResult.getErrorMsg());
-        }
-        UpgradeAsyncResponse asyncResponse = upgradeResult.getData();
-        UpgradeResponse response = asyncResponse.getFuture().get();
-        return HikResult.ok(response);
-    }
-
-    @Override
-    public HikResult<UpgradeAsyncResponse> upgradeAsyncForDVR(String sdkPath) {
-        HCNetSDK.NET_DVR_UPGRADE_PARAM upgradeParam = new HCNetSDK.NET_DVR_UPGRADE_PARAM();
-        upgradeParam.dwUpgradeType = 0;
-        upgradeParam.sFilename = sdkPath;
-        return upgradeAsync(upgradeParam);
-    }
-
-    @Override
-    public HikResult<UpgradeAsyncResponse> upgradeAsyncForACS(String sdkPath, int deviceNo) {
-        HCNetSDK.NET_DVR_UPGRADE_PARAM upgradeParam = new HCNetSDK.NET_DVR_UPGRADE_PARAM();
-        upgradeParam.dwUpgradeType = 0;
-        upgradeParam.sFilename = sdkPath;
-        upgradeParam.pInbuffer = new IntByReference(deviceNo).getPointer();
-        upgradeParam.dwBufferLen = 4;
-        return upgradeAsync(upgradeParam);
-    }
-
-    @Override
-    public HikResult<UpgradeAsyncResponse> upgradeAsync(HCNetSDK.NET_DVR_UPGRADE_PARAM upgradeParam) {
-        // 请求升级
-        upgradeParam.write();
-        final NativeLong upgradeHandle = getHcnetsdk().NET_DVR_Upgrade_V50(token.getUserId(), upgradeParam);
-        if (upgradeHandle.longValue() == -1) {
-            return lastError();
-        }
-
-        // 获取结果, 并关闭资源
-        FutureTask<UpgradeResponse> future = new FutureTask<>(new Callable<UpgradeResponse>() {
-            @Override
-            public UpgradeResponse call() throws Exception {
-                int state;
-                int errorTimes = 0;
-                do {
-                    Thread.sleep(TimeUnit.SECONDS.toMillis(15));
-                    state = getHcnetsdk().NET_DVR_GetUpgradeState(upgradeHandle);
-                    if (state == -1) {
-                        errorTimes++;
-                    } else {
-                        errorTimes = 0;
-                    }
-                } while (state == 2 || (state == -1 && errorTimes >= 3));
-                UpgradeResponse response = new UpgradeResponse();
-                response.setHandle(upgradeHandle.longValue());
-                response.setState(state);
-                if (state == -1) {
-                    response.setError(lastError());
-                } else {
-                    // 关闭升级句柄
-                    getHcnetsdk().NET_DVR_CloseUpgradeHandle(upgradeHandle);
-                }
-                return response;
-            }
-        });
-        new Thread(future).start();
-
-        UpgradeAsyncResponse response = new UpgradeAsyncResponse();
-        response.setHandle(upgradeHandle.longValue());
-        response.setFuture(future);
-        return HikResult.ok(response);
-    }
-
-
-    @Override
-    public HikResult<String> getConfig() {
-        HCNetSDK.NET_DVR_STRING_POINTER out = new HCNetSDK.NET_DVR_STRING_POINTER();
-        out.byString = new byte[10 * 1024 * 1024];
-        out.write();
-
-        IntByReference returnSize = new IntByReference();
-        boolean result = getHcnetsdk().NET_DVR_GetConfigFile_V30(token.getUserId(), out.getPointer(), out.byString.length, returnSize);
-        if (!result) {
-            return lastError();
-        }
-        out.read();
-        return HikResult.ok();
-    }
+//    @Override
+//    @SneakyThrows
+//    public HikResult<UpgradeResponse> upgradeSyncForDVR(String sdkPath) {
+//        HikResult<UpgradeAsyncResponse> upgradeResult = this.upgradeAsyncForDVR(sdkPath);
+//        if (!upgradeResult.isSuccess()) {
+//            return HikResult.fail(upgradeResult.getErrorCode(), upgradeResult.getErrorMsg());
+//        }
+//        UpgradeAsyncResponse asyncResponse = upgradeResult.getData();
+//        UpgradeResponse response = asyncResponse.getFuture().get();
+//        return HikResult.ok(response);
+//    }
+//
+//    @Override
+//    public HikResult<UpgradeResponse> upgradeSyncForACS(String sdkPath, int deviceNo) {
+//        HCNetSDK.NET_DVR_UPGRADE_PARAM upgradeParam = new HCNetSDK.NET_DVR_UPGRADE_PARAM();
+//        upgradeParam.dwUpgradeType = 0;
+//        upgradeParam.sFilename = sdkPath;
+//        upgradeParam.pInbuffer = new IntByReference(deviceNo).getPointer();
+//        upgradeParam.dwBufferLen = 4;
+//        return upgradeSync(upgradeParam);
+//    }
+//
+//    @Override
+//    @SneakyThrows
+//    public HikResult<UpgradeResponse> upgradeSync(HCNetSDK.NET_DVR_UPGRADE_PARAM upgradeParam) {
+//        HikResult<UpgradeAsyncResponse> upgradeResult = this.upgradeAsync(upgradeParam);
+//        if (!upgradeResult.isSuccess()) {
+//            return HikResult.fail(upgradeResult.getErrorCode(), upgradeResult.getErrorMsg());
+//        }
+//        UpgradeAsyncResponse asyncResponse = upgradeResult.getData();
+//        UpgradeResponse response = asyncResponse.getFuture().get();
+//        return HikResult.ok(response);
+//    }
+//
+//    @Override
+//    public HikResult<UpgradeAsyncResponse> upgradeAsyncForDVR(String sdkPath) {
+//        HCNetSDK.NET_DVR_UPGRADE_PARAM upgradeParam = new HCNetSDK.NET_DVR_UPGRADE_PARAM();
+//        upgradeParam.dwUpgradeType = 0;
+//        upgradeParam.sFilename = sdkPath;
+//        return upgradeAsync(upgradeParam);
+//    }
+//
+//    @Override
+//    public HikResult<UpgradeAsyncResponse> upgradeAsyncForACS(String sdkPath, int deviceNo) {
+//        HCNetSDK.NET_DVR_UPGRADE_PARAM upgradeParam = new HCNetSDK.NET_DVR_UPGRADE_PARAM();
+//        upgradeParam.dwUpgradeType = 0;
+//        upgradeParam.sFilename = sdkPath;
+//        upgradeParam.pInbuffer = new IntByReference(deviceNo).getPointer();
+//        upgradeParam.dwBufferLen = 4;
+//        return upgradeAsync(upgradeParam);
+//    }
+//
+//    @Override
+//    public HikResult<UpgradeAsyncResponse> upgradeAsync(HCNetSDK.NET_DVR_UPGRADE_PARAM upgradeParam) {
+//        // 请求升级
+//        upgradeParam.write();
+//        final NativeLong upgradeHandle = getHcnetsdk().NET_DVR_Upgrade_V50(token.getUserId(), upgradeParam);
+//        if (upgradeHandle.longValue() == -1) {
+//            return lastError();
+//        }
+//
+//        // 获取结果, 并关闭资源
+//        FutureTask<UpgradeResponse> future = new FutureTask<>(new Callable<UpgradeResponse>() {
+//            @Override
+//            public UpgradeResponse call() throws Exception {
+//                int state;
+//                int errorTimes = 0;
+//                do {
+//                    Thread.sleep(TimeUnit.SECONDS.toMillis(15));
+//                    state = getHcnetsdk().NET_DVR_GetUpgradeState(upgradeHandle);
+//                    if (state == -1) {
+//                        errorTimes++;
+//                    } else {
+//                        errorTimes = 0;
+//                    }
+//                } while (state == 2 || (state == -1 && errorTimes >= 3));
+//                UpgradeResponse response = new UpgradeResponse();
+//                response.setHandle(upgradeHandle.longValue());
+//                response.setState(state);
+//                if (state == -1) {
+//                    response.setError(lastError());
+//                } else {
+//                    // 关闭升级句柄
+//                    getHcnetsdk().NET_DVR_CloseUpgradeHandle(upgradeHandle);
+//                }
+//                return response;
+//            }
+//        });
+//        new Thread(future).start();
+//
+//        UpgradeAsyncResponse response = new UpgradeAsyncResponse();
+//        response.setHandle(upgradeHandle.longValue());
+//        response.setFuture(future);
+//        return HikResult.ok(response);
+//    }
+//
+//    @Override
+//    public HikResult<String> getConfig() {
+//        HCNetSDK.NET_DVR_STRING_POINTER out = new HCNetSDK.NET_DVR_STRING_POINTER();
+//        out.byString = new byte[10 * 1024 * 1024];
+//        out.write();
+//
+//        IntByReference returnSize = new IntByReference();
+//        boolean result = getHcnetsdk().NET_DVR_GetConfigFile_V30(token.getUserId(), out.getPointer(), out.byString.length, returnSize);
+//        if (!result) {
+//            return lastError();
+//        }
+//        out.read();
+//        return HikResult.ok();
+//    }
 
     @Override
     public HikResult<?> getConfigFile(String file) {

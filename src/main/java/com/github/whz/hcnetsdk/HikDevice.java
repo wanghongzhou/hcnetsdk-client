@@ -6,7 +6,6 @@ import com.github.whz.hcnetsdk.operations.HikResult;
 import com.github.whz.hcnetsdk.operations.MaintainOperations;
 import com.github.whz.hcnetsdk.operations.PtzOperations;
 import com.github.whz.hcnetsdk.operations.impl.AbstractOperations;
-import com.sun.jna.NativeLong;
 import com.sun.jna.Structure;
 import lombok.Getter;
 
@@ -38,7 +37,7 @@ public class HikDevice extends AbstractOperations implements Device {
     @Getter
     private volatile Token token;
 
-    private volatile Long setupAlarmHandle;
+    private volatile Integer setupAlarmHandle;
 
     public HikDevice(String ip, int port, String user, String password, DeviceTemplate deviceTemplate) {
         super(deviceTemplate.getHcnetsdk());
@@ -69,12 +68,12 @@ public class HikDevice extends AbstractOperations implements Device {
     public synchronized HikResult<Void> destroy() {
         // 消息回调取消布防
         if (Objects.nonNull(setupAlarmHandle)) {
-            deviceTemplate.getHcnetsdk().NET_DVR_CloseAlarmChan_V30(new NativeLong(setupAlarmHandle));
+            deviceTemplate.getHcnetsdk().NET_DVR_CloseAlarmChan_V30(setupAlarmHandle);
             setupAlarmHandle = null;
         }
 
         // 登录注销
-        if (Objects.nonNull(token) && Objects.nonNull(token.getUserId())) {
+        if (Objects.nonNull(token)) {
             deviceTemplate.logout(token);
         }
         return HikResult.ok();
@@ -87,12 +86,12 @@ public class HikDevice extends AbstractOperations implements Device {
     }
 
     @Override
-    public HikResult<Long> setupDeploy(HCNetSDK.FMSGCallBack messageCallback, HCNetSDK.FExceptionCallBack exceptionCallback) {
+    public HikResult<Integer> setupDeploy(HCNetSDK.FMSGCallBack messageCallback, HCNetSDK.FExceptionCallBack exceptionCallback) {
         checkInit();
         if (Objects.nonNull(setupAlarmHandle)) {
             throw new RuntimeException("重复布防.");
         }
-        HikResult<Long> deployResult = deviceTemplate.setupDeploy(token, messageCallback, exceptionCallback);
+        HikResult<Integer> deployResult = deviceTemplate.setupDeploy(token, messageCallback, exceptionCallback);
         if (deployResult.isSuccess() && Objects.nonNull(deployResult.getData())) {
             setupAlarmHandle = deployResult.getData();
         }
@@ -112,13 +111,13 @@ public class HikDevice extends AbstractOperations implements Device {
     }
 
     @Override
-    public <T extends Structure> HikResult<T> getDvrConfig(long channel, int command, Class<T> clazz) {
+    public <T extends Structure> HikResult<T> getDvrConfig(int channel, int command, Class<T> clazz) {
         checkInit();
         return deviceTemplate.getDvrConfig(token, channel, command, clazz);
     }
 
     @Override
-    public HikResult<Void> setDvrConfig(long channel, int type, Structure settings) {
+    public HikResult<Void> setDvrConfig(int channel, int type, Structure settings) {
         checkInit();
         return deviceTemplate.setDvrConfig(token, channel, type, settings);
     }

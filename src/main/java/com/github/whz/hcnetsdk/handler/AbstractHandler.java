@@ -9,7 +9,7 @@ public abstract class AbstractHandler implements Handler {
     protected DeviceInfo resolveDeviceInfo(NET_DVR_ALARMER alarm) {
         DeviceInfo deviceInfo = new DeviceInfo();
         if (alarm.byUserIDValid == 1) {
-            deviceInfo.setUserId(alarm.lUserID.longValue());
+            deviceInfo.setUserId((long) alarm.lUserID);
         }
         if (alarm.byDeviceIPValid == 1) {
             deviceInfo.setDeviceIp(new String(alarm.sDeviceIP).trim());
