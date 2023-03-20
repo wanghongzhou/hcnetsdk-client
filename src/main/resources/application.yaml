@@ -1,9 +1,4 @@
 javafx:
   title: HcnetSDK Client
-  stage:
-    width: 880
-    height: 780
-    resizable: true
-    maximized: false
 hcnetsdk:
   logPath: ./logs
