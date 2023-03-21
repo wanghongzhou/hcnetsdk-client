@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import lombok.Getter;
+import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.ffmpeg.global.avutil;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
 import org.bytedeco.javacv.Frame;
@@ -74,6 +75,7 @@ public abstract class AbstractVideoPlayer implements Runnable {
     protected FrameRecorder startFrameRecorder(FrameGrabber grabber) throws FrameRecorder.Exception {
         FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(this.outputFile, grabber.getImageWidth(), grabber.getImageHeight(), grabber.getAudioChannels());
         recorder.setFrameRate(grabber.getFrameRate());
+        recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);
         recorder.setAudioOptions(grabber.getAudioOptions());
         recorder.setVideoOptions(grabber.getVideoOptions());
         recorder.start();

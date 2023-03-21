@@ -54,6 +54,7 @@ public class StreamVideoPlayerApplication extends Application {
 
         primaryStage.setTitle("Stream Video Player");
         primaryStage.setScene(new Scene(new StackPane(imageView, recordBtn), 640, 480));
+        primaryStage.show();
 
         JnaPathUtils.initJnaLibraryPath(StreamVideoPlayerApplication.class);
         HCNetSDK hcNetSDK = HCNetSDK.INSTANCE;
@@ -62,7 +63,6 @@ public class StreamVideoPlayerApplication extends Application {
         hikDevice = new HikDevice("192.168.60.164", 8000, "admin", "JL654321", new HikDeviceTemplate(hcNetSDK));
         HikResult<Token> loginResult = hikDevice.init();
         if (loginResult.isSuccess()) {
-            primaryStage.show();
             preview(imageView);
         }
     }
