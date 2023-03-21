@@ -11,11 +11,14 @@ import io.github.wanghongzhou.hcnetsdk.operations.HikResult;
 import io.github.wanghongzhou.hcnetsdk.util.JnaPathUtils;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author Brian
@@ -23,8 +26,9 @@ import java.io.IOException;
 public class StreamVideoPlayerApplication extends Application {
 
     private HikDevice hikDevice;
-    private volatile Thread playThread;
+    private StreamVideoPlayer videoPlayer;
     private HCNetSDK.FRealDataCallBack_V30 callBack_v30;
+    private final ExecutorService writeExecutor = Executors.newSingleThreadExecutor();
 
     public static void main(String[] args) {
         launch(args);
@@ -36,8 +40,20 @@ public class StreamVideoPlayerApplication extends Application {
         imageView.fitWidthProperty().bind(primaryStage.widthProperty());
         imageView.fitHeightProperty().bind(primaryStage.heightProperty());
 
+        videoPlayer = new StreamVideoPlayer(imageView);
+        final Button recordBtn = new Button("start recording");
+        recordBtn.setOnAction(event -> {
+            if (videoPlayer.getRecording().get()) {
+                videoPlayer.stopRecording();
+                recordBtn.setText("start recording");
+            } else {
+                videoPlayer.startRecording("video/" + System.currentTimeMillis() + ".mp4");
+                recordBtn.setText("stop recording");
+            }
+        });
+
         primaryStage.setTitle("Stream Video Player");
-        primaryStage.setScene(new Scene(new StackPane(imageView), 640, 480));
+        primaryStage.setScene(new Scene(new StackPane(imageView, recordBtn), 640, 480));
 
         JnaPathUtils.initJnaLibraryPath(StreamVideoPlayerApplication.class);
         HCNetSDK hcNetSDK = HCNetSDK.INSTANCE;
@@ -59,29 +75,32 @@ public class StreamVideoPlayerApplication extends Application {
         previewInfo.dwLinkMode = 0; //连接方式：0- TCP方式，1- UDP方式，2- 多播方式，3- RTP方式，4- RTP/RTSP，5- RTP/HTTP，6- HRUDP（可靠传输） ，7- RTSP/HTTPS，8- NPQ
         previewInfo.bBlocked = 1;  //0- 非阻塞取流，1- 阻塞取流
 
-        final StreamVideoPlayer videoPlayer = new StreamVideoPlayer(imageView);
+        videoPlayer = new StreamVideoPlayer(imageView);
         callBack_v30 = (int lRealHandle, int dwDataType, ByteByReference pBuffer, int dwBufSize, Pointer pUser) -> {
             switch (dwDataType) {
-                case HCNetSDK.NET_DVR_SYSHEAD: //系统头
-                case HCNetSDK.NET_DVR_STREAMDATA:   //PS封装的码流数据
-                    try {
-                        videoPlayer.getOutputStream().write(pBuffer.getPointer().getByteArray(0, dwBufSize));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                case HCNetSDK.NET_DVR_SYSHEAD, HCNetSDK.NET_DVR_STREAMDATA -> {   //PS封装的码流数据
+                    byte[] data = pBuffer.getPointer().getByteArray(0, dwBufSize);
+                    writeExecutor.submit(() -> {
+                        try {
+                            videoPlayer.getOutputStream().write(data);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }
             }
         };
 
         HikResult<Integer> result = hikDevice.realPlay(previewInfo, callBack_v30);
         if (result.isSuccess()) {
-            playThread = new Thread(videoPlayer);
-            playThread.start();
+            videoPlayer.startPlaying();
         }
     }
 
     @Override
     public void stop() {
         hikDevice.stopRealPlay();
-        playThread.interrupt();
+        videoPlayer.stopPlaying();
+        writeExecutor.shutdownNow();
     }
 }

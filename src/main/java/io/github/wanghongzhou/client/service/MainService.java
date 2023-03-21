@@ -15,6 +15,7 @@ import io.github.wanghongzhou.hcnetsdk.HCNetSDK;
 import io.github.wanghongzhou.hcnetsdk.HikDevice;
 import io.github.wanghongzhou.hcnetsdk.model.Token;
 import io.github.wanghongzhou.hcnetsdk.operations.HikResult;
+import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Resource;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
@@ -23,6 +24,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author Brian
@@ -30,9 +33,10 @@ import java.util.Objects;
 @Service
 public class MainService {
 
-    private Thread playThread;
     private HikDevice currentDevice;
+    private StreamVideoPlayer videoPlayer;
     private HCNetSDK.FRealDataCallBack_V30 callBack_v30;
+    private final ExecutorService writeExecutor = Executors.newSingleThreadExecutor();
 
     @Resource
     private DeviceTemplate deviceTemplate;
@@ -78,22 +82,24 @@ public class MainService {
 
         HikResult<Integer> result;
         if (callback) {
-            final StreamVideoPlayer videoPlayer = new StreamVideoPlayer(imageView);
+            videoPlayer = new StreamVideoPlayer(imageView);
             callBack_v30 = (int lRealHandle, int dwDataType, ByteByReference pBuffer, int dwBufSize, Pointer pUser) -> {
                 switch (dwDataType) {
-                    case HCNetSDK.NET_DVR_SYSHEAD: //系统头
-                    case HCNetSDK.NET_DVR_STREAMDATA:   //PS封装的码流数据
-                        try {
-                            videoPlayer.getOutputStream().write(pBuffer.getPointer().getByteArray(0, dwBufSize));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                    case HCNetSDK.NET_DVR_SYSHEAD, HCNetSDK.NET_DVR_STREAMDATA -> {   //PS封装的码流数据
+                        byte[] data = pBuffer.getPointer().getByteArray(0, dwBufSize);
+                        writeExecutor.submit(() -> {
+                            try {
+                                videoPlayer.getOutputStream().write(data);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+                    }
                 }
             };
             result = currentDevice.realPlay(previewInfo, callBack_v30);
             if (result.isSuccess()) {
-                playThread = new Thread(videoPlayer);
-                playThread.start();
+                videoPlayer.startPlaying();
             }
         } else {
             // 不回调预览
@@ -114,9 +120,11 @@ public class MainService {
         }
     }
 
+    @PreDestroy
     public void stopPreview() {
         currentDevice.stopRealPlay();
-        playThread.interrupt();
+        videoPlayer.stopPlaying();
+        writeExecutor.shutdownNow();
     }
 
     /**
